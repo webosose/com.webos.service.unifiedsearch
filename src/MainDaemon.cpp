@@ -37,11 +37,15 @@ MainDaemon::~MainDaemon()
 void MainDaemon::initialize()
 {
     ConfFile::getInstance().initialize();
+    Database::getInstance().initialize();
+    CategoryList::getInstance().initialize();
     UnifiedSearch::getInstance().initialize(m_mainLoop);
 }
 
 void MainDaemon::finalize()
 {
+    CategoryList::getInstance().finalize();
+    Database::getInstance().finalize();
     Configd::getInstance().finalize();
 }
 

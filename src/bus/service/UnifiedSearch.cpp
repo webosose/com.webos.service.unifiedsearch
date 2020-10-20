@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "base/CategoryList.h"
+
 #include "util/JValueUtil.h"
 #include "util/Time.h"
 
@@ -59,9 +61,25 @@ bool UnifiedSearch::search(LSMessage &message)
 
     Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
 
-    // fill in responsePayload
+    string searchKey;
+    bool ret = true;
 
+    if (JValueUtil::getValue(requestPayload, "key", searchKey) && !searchKey.empty()) {
+        JValue intentArr = Array();
+        auto intents = CategoryList::getInstance().search(searchKey);
+        for (auto intent : intents) {
+            JValue obj;
+            intent->toJson(obj);
+            intentArr << obj;
+        }
+        responsePayload.put("intents", intentArr);
+    } else {
+        responsePayload.put("errorText", "'key' isn't specified.");
+        ret = false;
+    }
+
+    responsePayload.put("returnValue", ret);
     request.respond(responsePayload.stringify().c_str());
     Logger::logAPIResponse(getInstance().getClassName(), __FUNCTION__, request, responsePayload);
-    return true;
+    return ret;
 }

@@ -14,38 +14,37 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_DATABASE_H_
-#define BASE_DATABASE_H_
+#ifndef BASE_CATEGORY_H_
+#define BASE_CATEGORY_H_
 
 #include <map>
 #include <string>
+#include <pbnjson.hpp>
 
-#include <sqlite3.h>
-
+#include "base/Intent.h"
 #include "base/SearchItem.h"
-#include "interface/IInitializable.h"
-#include "interface/ISingleton.h"
+
+#include "interface/IClassName.h"
+#include "interface/ISerializable.h"
 
 using namespace std;
+using namespace pbnjson;
 
-class Database : public IInitializable
-               , public ISingleton<Database> {
-friend class ISingleton<Database>;
+class Category : public IClassName
+               , public ISerializable {
 public:
-    virtual ~Database() {}
+    Category(string name);
+    virtual ~Category();
 
-    bool onInitialization();
-    bool onFinalization();
+    const string& getName() { return m_name; }
+    IntentPtr generateIntent(SearchItemPtr item);
 
-    bool insert(SearchItemPtr item);
-    bool remove(string category, string key);
+protected:
+    string m_name;
 
-    vector<SearchItemPtr> search(string searchKey);
-
-private:
-    Database();
-
-    sqlite3 *m_database;
+    IntentPtr m_template;
 };
 
-#endif /* BASE_DATABASE_H_ */
+typedef shared_ptr<Category> CategoryPtr;
+
+#endif /* BASE_CATEGORY_H_ */

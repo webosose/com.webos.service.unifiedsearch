@@ -14,25 +14,30 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "base/SearchItem.h"
+#include "base/Intent.h"
 
 #include "conf/ConfFile.h"
 #include "util/File.h"
 #include "util/Logger.h"
 
-SearchItem::SearchItem()
+Intent::Intent()
 {
-    setClassName("SearchItem");
+    setClassName("Intent");
 }
 
-SearchItem::SearchItem(string category, string key, string value, string extra)
-    : m_category(category)
-    , m_key(key)
-    , m_value(value)
+Intent::Intent(string action, string uri, JValue extra)
+    : m_action(action)
+    , m_uri(uri)
+    , m_extra(extra)
 {
-    setClassName("SearchItem");
+    setClassName("Intent");
 
-    if (!extra.empty()) {
-        m_extra = JDomParser::fromString(extra);
-    }
+    auto jsonObj = getJson();
+    jsonObj.put("action", action);
+    jsonObj.put("uri", uri);
+    jsonObj.put("extra", extra);
+}
+
+Intent::~Intent()
+{
 }

@@ -45,7 +45,6 @@ public:
 
 private:
     JValue m_json;
-
 };
 
 #endif /* INTERFACE_ISERIALIZABLE_H_ */

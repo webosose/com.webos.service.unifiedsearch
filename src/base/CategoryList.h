@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_DATABASELIST_H_
-#define BASE_DATABASELIST_H_
+#ifndef BASE_CATEGORYLIST_H_
+#define BASE_CATEGORYLIST_H_
 
 #include <map>
 #include <vector>
@@ -23,7 +23,8 @@
 #include <sqlite3.h>
 #include <pbnjson.hpp>
 
-#include "base/Database.h"
+#include "base/Category.h"
+#include "base/Intent.h"
 #include "base/SearchItem.h"
 
 #include "interface/IClassName.h"
@@ -32,25 +33,25 @@
 
 using namespace std;
 
-class DatabaseList: public IInitializable,
-                public ISingleton<DatabaseList> {
-friend class ISingleton<DatabaseList>;
+class CategoryList : public IInitializable
+                   , public ISingleton<CategoryList> {
+friend class ISingleton<CategoryList>;
 public:
-    virtual ~DatabaseList();
+    virtual ~CategoryList();
 
     bool onInitialization();
     bool onFinalization();
 
-    bool createDB(string category);
-    bool deleteDB(string category);
-    DatabasePtr getDB(string category);
+    bool addCategory(CategoryPtr category);
+    bool removeCategory(string name);
 
-    vector<SearchItemPtr> search(string searchKey);
+    CategoryPtr find(string name);
+    vector<IntentPtr> search(string searchKey);
 
 private:
-    DatabaseList();
+    CategoryList();
 
-    map<string, DatabasePtr> m_databases;
+    map<string, CategoryPtr> m_categories;
 };
 
 #endif /* BASE_DATABASE_H_ */

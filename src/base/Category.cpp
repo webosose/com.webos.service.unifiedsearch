@@ -14,25 +14,25 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "base/SearchItem.h"
+#include "base/Category.h"
 
 #include "conf/ConfFile.h"
 #include "util/File.h"
 #include "util/Logger.h"
 
-SearchItem::SearchItem()
+Category::Category(string name) : m_name(name)
 {
-    setClassName("SearchItem");
+    setClassName("Category");
 }
 
-SearchItem::SearchItem(string category, string key, string value, string extra)
-    : m_category(category)
-    , m_key(key)
-    , m_value(value)
+Category::~Category()
 {
-    setClassName("SearchItem");
 
-    if (!extra.empty()) {
-        m_extra = JDomParser::fromString(extra);
-    }
+}
+
+IntentPtr Category::generateIntent(SearchItemPtr item)
+{
+    auto intent = make_shared<Intent>();
+
+    return intent;
 }

@@ -23,6 +23,8 @@
 #include "interface/ISingleton.h"
 #include "interface/IClassName.h"
 
+#include "base/Database.h"
+#include "base/CategoryList.h"
 #include "bus/service/UnifiedSearch.h"
 #include "bus/client/Configd.h"
 

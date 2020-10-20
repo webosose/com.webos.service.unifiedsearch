@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_SEARCHITEM_H_
-#define BASE_SEARCHITEM_H_
+#ifndef BASE_INTENT_H_
+#define BASE_INTENT_H_
 
 #include <map>
 #include <string>
@@ -27,24 +27,27 @@
 using namespace std;
 using namespace pbnjson;
 
-class SearchItem : public IClassName {
+class Intent : public IClassName
+             , public ISerializable {
 public:
-    SearchItem();
-    SearchItem(string category, string key, string value, string extra = "");
-    virtual ~SearchItem() {}
+    Intent();
+    Intent(string action, string uri, JValue extra = JValue());
+    virtual ~Intent();
 
-    const string& getKey() { return m_key; }
-    const string& getCategory() { return m_category; }
-    const string& getValue() { return m_value; }
-    JValue& getExtra() { return m_extra; }
+    void setAction(string action) { m_action = action; }
+    void setUri(string uri) { m_uri = uri; }
+    void setExtra(JValue extra) { m_extra = extra; }
+
+    const string& getAction() { return m_action; }
+    const string& getUri() { return m_uri; }
+    const JValue& getExtra() { return m_extra; }
 
 private:
-    string m_key;
-    string m_category;
-    string m_value;
+    string m_action;
+    string m_uri;
     JValue m_extra;
 };
 
-typedef shared_ptr<SearchItem> SearchItemPtr;
+typedef shared_ptr<Intent> IntentPtr;
 
-#endif /* BASE_SEARCHITEM_H_ */
+#endif /* BASE_INTENT_H_ */
