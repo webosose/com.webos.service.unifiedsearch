@@ -1,0 +1,13 @@
+{
+    "exeName":"@WEBOS_INSTALL_SBINDIR@/unifiedsearch",
+    "type": "regular",
+    "allowedNames": [
+        "com.webos.service.unifiedsearch"
+    ],
+    "permissions": [
+        {
+            "service":"com.webos.service.unifiedsearch",
+            "outbound":["*"]
+        }
+    ]
+}

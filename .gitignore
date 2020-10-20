@@ -1,0 +1,6 @@
+build
+oe-logs
+oe-workdir
+singletask.lock
+tags
+.vscode/
