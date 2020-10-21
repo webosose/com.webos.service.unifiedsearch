@@ -40,14 +40,14 @@ bool CategoryList::onFinalization()
     return true;
 }
 
-bool CategoryList::addCategory(CategoryPtr category)
+bool CategoryList::addCategory(Category* category)
 {
     if (!category) {
         Logger::warning(getClassName(), __FUNCTION__, "Null category");
         return false;
     }
 
-    string name = category->getName();
+    string name = category->getCategoryName();
     if (m_categories.find(name) != m_categories.end()) {
         Logger::warning(getClassName(), __FUNCTION__, Logger::format("Already exist category: %s", name.c_str()));
         return false;
@@ -68,7 +68,7 @@ bool CategoryList::removeCategory(string name)
     return true;
 }
 
-CategoryPtr CategoryList::find(string name)
+Category* CategoryList::find(string name)
 {
     auto category = m_categories.find(name);
     if (category != m_categories.end()) {
@@ -77,23 +77,29 @@ CategoryPtr CategoryList::find(string name)
     return nullptr;
 }
 
-vector<IntentPtr> CategoryList::search(string searchKey)
+map<string, vector<IntentPtr>> CategoryList::search(string searchKey)
 {
-    vector<IntentPtr> intents;
+    map<string, vector<IntentPtr>> allIntents;
 
     auto items = Database::getInstance().search(searchKey);
     for (auto c : items) {
-        CategoryPtr category = find(c->getCategory());
+        const string &cateName = c->getCategory();
+        Category* category = find(cateName);
         if (category) {
+            if (allIntents.find(cateName) == allIntents.end()) {
+                allIntents.insert({cateName, vector<IntentPtr>()});
+            }
+
             IntentPtr intent = category->generateIntent(c);
-            intents.push_back(intent);
+            allIntents[cateName].push_back(intent);
+            Logger::debug(getClassName(), __FUNCTION__, Logger::format("Item: %s, %s", cateName.c_str(), c->getKey().c_str()));
         } else {
             Logger::warning(getClassName(), __FUNCTION__, Logger::format("Ignore '%s': There is no %s category.",
                 c->getKey().c_str(),
-                c->getCategory().c_str()));
+                cateName.c_str()));
         }
     }
 
-    Logger::info(getClassName(), __FUNCTION__, Logger::format("Find %d item(s)", intents.size()));
-    return intents;
+    Logger::info(getClassName(), __FUNCTION__, Logger::format("Find '%s' => %d item(s)", searchKey.c_str(), items.size()));
+    return allIntents;
 }

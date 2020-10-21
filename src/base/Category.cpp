@@ -15,6 +15,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "base/Category.h"
+#include "base/CategoryList.h"
 
 #include "conf/ConfFile.h"
 #include "util/File.h"
@@ -22,17 +23,10 @@
 
 Category::Category(string name) : m_name(name)
 {
-    setClassName("Category");
+    CategoryList::getInstance().addCategory(this);
 }
 
 Category::~Category()
 {
 
-}
-
-IntentPtr Category::generateIntent(SearchItemPtr item)
-{
-    auto intent = make_shared<Intent>();
-
-    return intent;
 }

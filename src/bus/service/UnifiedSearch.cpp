@@ -65,14 +65,19 @@ bool UnifiedSearch::search(LSMessage &message)
     bool ret = true;
 
     if (JValueUtil::getValue(requestPayload, "key", searchKey) && !searchKey.empty()) {
-        JValue intentArr = Array();
-        auto intents = CategoryList::getInstance().search(searchKey);
-        for (auto intent : intents) {
-            JValue obj;
-            intent->toJson(obj);
-            intentArr << obj;
+        auto allIntents = CategoryList::getInstance().search(searchKey);
+        JValue categoryMap = Object();
+        for (auto category : allIntents) {
+            auto intents = category.second;
+            JValue intentArr = Array();
+            for (auto intent : intents) {
+                JValue obj;
+                intent->toJson(obj);
+                intentArr << obj;
+            }
+            categoryMap.put(category.first, intentArr);
         }
-        responsePayload.put("intents", intentArr);
+        responsePayload.put("intents", categoryMap);
     } else {
         responsePayload.put("errorText", "'key' isn't specified.");
         ret = false;

@@ -30,13 +30,15 @@ using namespace pbnjson;
 class SearchItem : public IClassName {
 public:
     SearchItem();
-    SearchItem(string category, string key, string value, string extra = "");
+    SearchItem(string category, string key, string value);
+    SearchItem(string category, string key, string value, JValue extra);
     virtual ~SearchItem() {}
 
     const string& getKey() { return m_key; }
     const string& getCategory() { return m_category; }
     const string& getValue() { return m_value; }
     JValue& getExtra() { return m_extra; }
+    const string getExtraStr();
 
 private:
     string m_key;

@@ -18,6 +18,12 @@
 
 #include <glib.h>
 
+#include "base/Database.h"
+#include "base/CategoryList.h"
+#include "bus/service/UnifiedSearch.h"
+#include "bus/client/Configd.h"
+#include "bus/client/SAM.h"
+
 #include "conf/ConfFile.h"
 #include "util/JValueUtil.h"
 
@@ -40,10 +46,12 @@ void MainDaemon::initialize()
     Database::getInstance().initialize();
     CategoryList::getInstance().initialize();
     UnifiedSearch::getInstance().initialize(m_mainLoop);
+    SAM::getInstance().initialize();
 }
 
 void MainDaemon::finalize()
 {
+    SAM::getInstance().finalize();
     CategoryList::getInstance().finalize();
     Database::getInstance().finalize();
     Configd::getInstance().finalize();

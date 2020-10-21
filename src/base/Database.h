@@ -38,7 +38,7 @@ public:
     bool onFinalization();
 
     bool insert(SearchItemPtr item);
-    bool remove(string category, string key);
+    bool remove(string category, string key = "");
 
     vector<SearchItemPtr> search(string searchKey);
 
@@ -46,6 +46,8 @@ private:
     Database();
 
     sqlite3 *m_database;
+    sqlite3_stmt *m_insertStmt;
+    sqlite3_stmt *m_selectStmt;
 };
 
 #endif /* BASE_DATABASE_H_ */

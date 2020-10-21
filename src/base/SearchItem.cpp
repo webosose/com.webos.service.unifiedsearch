@@ -25,14 +25,27 @@ SearchItem::SearchItem()
     setClassName("SearchItem");
 }
 
-SearchItem::SearchItem(string category, string key, string value, string extra)
+SearchItem::SearchItem(string category, string key, string value)
     : m_category(category)
     , m_key(key)
     , m_value(value)
 {
     setClassName("SearchItem");
+}
 
-    if (!extra.empty()) {
-        m_extra = JDomParser::fromString(extra);
-    }
+SearchItem::SearchItem(string category, string key, string value, JValue extra)
+    : m_category(category)
+    , m_key(key)
+    , m_value(value)
+    , m_extra(extra)
+{
+    setClassName("SearchItem");
+}
+
+const string SearchItem::getExtraStr()
+{
+    if (m_extra.isNull())
+        return "";
+
+    return string("(") + m_extra.stringify() + ")";
 }

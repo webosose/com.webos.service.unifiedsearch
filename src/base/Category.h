@@ -30,19 +30,16 @@
 using namespace std;
 using namespace pbnjson;
 
-class Category : public IClassName
-               , public ISerializable {
+class Category : public ISerializable {
 public:
     Category(string name);
     virtual ~Category();
 
-    const string& getName() { return m_name; }
-    IntentPtr generateIntent(SearchItemPtr item);
+    const string& getCategoryName() { return m_name; }
+    virtual IntentPtr generateIntent(SearchItemPtr item) = 0;
 
 protected:
     string m_name;
-
-    IntentPtr m_template;
 };
 
 typedef shared_ptr<Category> CategoryPtr;

@@ -152,23 +152,6 @@ void Logger::write(const enum LogLevel& level, const string& className, const st
         context = PmLogGetContextInline("unifiedsearch");
     }
 
-    switch(level) {
-    case LogLevel_DEBUG:
-        if (!PmLogIsEnabled(context, kPmLogLevel_Debug))
-            return;
-        break;
-    case LogLevel_INFO:
-        if (!PmLogIsEnabled(context, kPmLogLevel_Info))
-            return;
-        break;
-    case LogLevel_WARNING:
-        if (!PmLogIsEnabled(context, kPmLogLevel_Warning))
-            return;
-        break;
-    default:
-        break;
-    }
-
     switch (m_type) {
     case LogType_CONSOLE:
         writeConsole(level, className, functionName, who, what, detail);
@@ -186,6 +169,22 @@ void Logger::write(const enum LogLevel& level, const string& className, const st
 
 void Logger::writeConsole(const enum LogLevel& level, const string& className, const string& functionName, const string& who, const string& what, const string& detail)
 {
+    switch(level) {
+    case LogLevel_DEBUG:
+        if (!PmLogIsEnabled(context, kPmLogLevel_Debug))
+            return;
+        break;
+    case LogLevel_INFO:
+        if (!PmLogIsEnabled(context, kPmLogLevel_Info))
+            return;
+        break;
+    case LogLevel_WARNING:
+        if (!PmLogIsEnabled(context, kPmLogLevel_Warning))
+            return;
+        break;
+    default:
+        break;
+    }
 
     const string& str = toString(level);
     if (who.empty() && detail.empty()) {

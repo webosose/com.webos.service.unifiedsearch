@@ -20,24 +20,25 @@
 #include "util/File.h"
 #include "util/Logger.h"
 
-Intent::Intent()
+Intent::Intent(string category, JValue base)
+    : m_category(category)
+    , m_base(base)
 {
     setClassName("Intent");
-}
-
-Intent::Intent(string action, string uri, JValue extra)
-    : m_action(action)
-    , m_uri(uri)
-    , m_extra(extra)
-{
-    setClassName("Intent");
-
-    auto jsonObj = getJson();
-    jsonObj.put("action", action);
-    jsonObj.put("uri", uri);
-    jsonObj.put("extra", extra);
 }
 
 Intent::~Intent()
 {
+}
+
+bool Intent::toJson(JValue& json)
+{
+    JValue obj = m_base.duplicate();
+    obj.put("action", m_action);
+    obj.put("uri", m_uri);
+    if (!m_extra.isNull()) {
+        obj.put("extra", m_extra);
+    }
+    json = obj;
+    return true;
 }

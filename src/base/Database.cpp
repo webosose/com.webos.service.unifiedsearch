@@ -22,6 +22,11 @@
 #include "util/File.h"
 #include "util/Logger.h"
 
+#define TABLE_QUERY "CREATE VIRTUAL TABLE IF NOT EXISTS Items USING FTS3(category, key, text, extra);"
+#define INSERT_QUERY "INSERT INTO Items values (?, ?, ?, ?);"
+#define DELETE_QUERY_PRE "DELETE FROM Items WHERE category = '"
+#define SELECT_QUERY_PRE "SELECT * FROM Items WHERE text MATCH '"
+
 Database::Database()
 {
     setClassName("Database");
@@ -32,11 +37,8 @@ bool Database::onInitialization()
     // database folder
     File::createDir(PATH_DATABASE);
 
-    // check already created
-    string file = File::join(PATH_DATABASE, DATABASE_FILE);
-    bool alreadyExist = File::isFile(file);
-
     // create or open DB file
+    string file = File::join(PATH_DATABASE, DATABASE_FILE);
     if (sqlite3_open(file.c_str(), &m_database) != SQLITE_OK) {
         sqlite3_close(m_database);
         Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to initialize: %s", sqlite3_errmsg(m_database)));
@@ -44,13 +46,15 @@ bool Database::onInitialization()
     }
 
     // if it's not exist before, need table
-    if (!alreadyExist) {
-        char *err_msg = nullptr;
-        const char *query = "CREATE VIRTUAL TABLE Items USING FTS3(category, key, text, extra);";
-        if (sqlite3_exec(m_database, query, 0, 0, &err_msg) != SQLITE_OK) {
-            Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to create table: %s", err_msg));
-            return false;
-        }
+    char *err_msg = nullptr;
+    if (sqlite3_exec(m_database, TABLE_QUERY, 0, 0, &err_msg) != SQLITE_OK) {
+        Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to create table: %s", err_msg));
+        return false;
+    }
+
+    if (sqlite3_prepare(m_database, INSERT_QUERY, -1, &m_insertStmt, NULL) != SQLITE_OK) {
+        Logger::error(getClassName(), __FUNCTION__, "Failed to create 'insert' statement");
+        return false;
     }
 
     Logger::info(getClassName(), __FUNCTION__, "Openning database successed");
@@ -60,6 +64,7 @@ bool Database::onInitialization()
 bool Database::onFinalization()
 {
     // close DB
+    sqlite3_finalize(m_insertStmt);
     sqlite3_close(m_database);
     return true;
 }
@@ -71,45 +76,45 @@ bool Database::insert(SearchItemPtr item)
         return false;
     }
 
-    char *err_msg = nullptr;
-    sqlite3_stmt *stmt;
-    string query = "INSERT INTO Items values (?, ?, ?, ?);";
-    if (sqlite3_prepare(m_database, query.c_str(), -1, &stmt, NULL) != SQLITE_OK) {
-        Logger::error(getClassName(), __FUNCTION__, "Failed to create statement");
+    // to use SQLITE_STATIC (don't copy)
+    string extra = item->getExtra().stringify();
+
+    sqlite3_reset(m_insertStmt);
+    sqlite3_bind_text(m_insertStmt, 1, item->getCategory().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(m_insertStmt, 2, item->getKey().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(m_insertStmt, 3, item->getValue().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(m_insertStmt, 4, extra.c_str(), -1, SQLITE_STATIC);
+
+    if (sqlite3_step(m_insertStmt) != SQLITE_DONE) {
+        const char *err_msg = sqlite3_errmsg(m_database);
+        Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to insert: %s - (%s, %s)", err_msg, item->getCategory(), item->getKey()));
         return false;
     }
 
-    sqlite3_bind_text(stmt, 1, item->getCategory().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, item->getKey().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, item->getValue().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 4, item->getExtra().stringify().c_str(), -1, SQLITE_STATIC);
-
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to insert: %s, %s", err_msg, query.c_str()));
-        return false;
-    }
-
-    sqlite3_finalize(stmt);
+    Logger::debug(getClassName(), __FUNCTION__, Logger::format("Inserted: %s, %s <= %s", item->getCategory().c_str(), item->getKey().c_str(), item->getValue().c_str()));
     return true;
 }
 
 bool Database::remove(string category, string key)
 {
-    if (category.empty() || key.empty()) {
-        Logger::warning(getClassName(), __FUNCTION__, "Category or key is empty");
+    if (category.empty()) {
+        Logger::warning(getClassName(), __FUNCTION__, "Category is empty");
         return false;
     }
 
     char *err_msg = nullptr;
-    string query = "DELETE FROM Items WHERE ";
-    // category, key, text, extra);";
-    query += "category = '" + category + "' AND ";
-    query += "key = '" + key + "';";
+    string query = DELETE_QUERY_PRE;
+    query += category;
+    if (!key.empty()) {
+        query += "' AND key = '" + key;
+    }
+    query += "';";
 
     if (sqlite3_exec(m_database, query.c_str(), 0, 0, &err_msg) != SQLITE_OK) {
         Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to delete: %s", err_msg));
         return false;
     }
+    Logger::debug(getClassName(), __FUNCTION__, Logger::format("Removed: %s, %s", category.c_str(), key.c_str()));
     return true;
 }
 
@@ -118,10 +123,14 @@ vector<SearchItemPtr> Database::search(string searchKey)
     vector<SearchItemPtr> searchedItems;
 
     char *err_msg = nullptr;
-    string query = "select * from Items where text match '" + searchKey + "*';";
+    string query = string(SELECT_QUERY_PRE) + searchKey + "*';";
     int ret = sqlite3_exec(m_database, query.c_str(), [] (void *data, int n, char **row, char **colNames) -> int {
         vector<SearchItemPtr> *items = static_cast<vector<SearchItemPtr>*>(data);
-        items->push_back(make_shared<SearchItem>(row[0], row[1], row[2], row[3]));
+        if (n > 3 && strlen(row[3]) >= 2) {
+            items->push_back(make_shared<SearchItem>(row[0], row[1], row[2], JDomParser::fromString(row[3])));
+        } else {
+            items->push_back(make_shared<SearchItem>(row[0], row[1], row[2]));
+        }
         return 0;
     }, &searchedItems, &err_msg);
 

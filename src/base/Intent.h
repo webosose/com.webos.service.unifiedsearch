@@ -30,19 +30,24 @@ using namespace pbnjson;
 class Intent : public IClassName
              , public ISerializable {
 public:
-    Intent();
-    Intent(string action, string uri, JValue extra = JValue());
+    Intent(string category, JValue base = Object());
     virtual ~Intent();
 
     void setAction(string action) { m_action = action; }
     void setUri(string uri) { m_uri = uri; }
     void setExtra(JValue extra) { m_extra = extra; }
 
+    JValue& getBase() { return m_base; }
+    const string& getCategory() { return m_category; }
     const string& getAction() { return m_action; }
     const string& getUri() { return m_uri; }
     const JValue& getExtra() { return m_extra; }
 
+    bool toJson(JValue& json);
+
 private:
+    JValue m_base;
+    string m_category;
     string m_action;
     string m_uri;
     JValue m_extra;
