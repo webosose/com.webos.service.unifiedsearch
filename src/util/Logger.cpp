@@ -21,6 +21,7 @@
 #include <string.h>
 
 const string Logger::EMPTY = "";
+static PmLogContext context = nullptr;
 
 void Logger::logAPIRequest(const string& className, const string& functionName, Message& request, JValue& requestPayload)
 {
@@ -132,18 +133,12 @@ const string& Logger::toString(const enum LogLevel& level)
 }
 
 Logger::Logger()
-    : m_level(LogLevel_DEBUG),
-      m_type(getenv("JOURNAL_STREAM") ? LogType_PMLOG : LogType_CONSOLE)
+    : m_type(getenv("JOURNAL_STREAM") ? LogType_PMLOG : LogType_CONSOLE)
 {
 }
 
 Logger::~Logger()
 {
-}
-
-void Logger::setLevel(enum LogLevel level)
-{
-    m_level = level;
 }
 
 void Logger::setType(enum LogType type)
@@ -153,8 +148,26 @@ void Logger::setType(enum LogType type)
 
 void Logger::write(const enum LogLevel& level, const string& className, const string& functionName, const string& who, const string& what, const string& detail)
 {
-    if (level < m_level)
-        return;
+    if (context == nullptr) {
+        context = PmLogGetContextInline("unifiedsearch");
+    }
+
+    switch(level) {
+    case LogLevel_DEBUG:
+        if (!PmLogIsEnabled(context, kPmLogLevel_Debug))
+            return;
+        break;
+    case LogLevel_INFO:
+        if (!PmLogIsEnabled(context, kPmLogLevel_Info))
+            return;
+        break;
+    case LogLevel_WARNING:
+        if (!PmLogIsEnabled(context, kPmLogLevel_Warning))
+            return;
+        break;
+    default:
+        break;
+    }
 
     switch (m_type) {
     case LogType_CONSOLE:
@@ -173,6 +186,7 @@ void Logger::write(const enum LogLevel& level, const string& className, const st
 
 void Logger::writeConsole(const enum LogLevel& level, const string& className, const string& functionName, const string& who, const string& what, const string& detail)
 {
+
     const string& str = toString(level);
     if (who.empty() && detail.empty()) {
         printf("[%s][%s][%s] %s\n", str.c_str(), className.c_str(), functionName.c_str(), what.c_str());
@@ -187,11 +201,6 @@ void Logger::writeConsole(const enum LogLevel& level, const string& className, c
 
 void Logger::writePmlog(const enum LogLevel& level, const string& className, const string& functionName, const string& who, const string& what, const string& detail)
 {
-    static PmLogContext context = nullptr;
-    if (context == nullptr) {
-        context = PmLogGetContextInline("searchservice");
-    }
-
     switch(level) {
     case LogLevel_DEBUG:
         PmLogDebug(context, "%s %s %s"
