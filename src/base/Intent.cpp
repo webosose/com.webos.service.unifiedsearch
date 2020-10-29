@@ -34,8 +34,12 @@ Intent::~Intent()
 bool Intent::toJson(JValue& json)
 {
     JValue obj = m_base.duplicate();
-    obj.put("action", m_action);
-    obj.put("uri", m_uri);
+    if (!m_action.empty()) {
+        obj.put("action", m_action);
+    }
+    if (!m_uri.empty()) {
+        obj.put("uri", m_uri);
+    }
     if (!m_extra.isNull()) {
         obj.put("extra", m_extra);
     }

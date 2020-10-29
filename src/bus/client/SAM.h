@@ -47,12 +47,12 @@ protected:
     virtual void onServerStatusChanged(bool isConnected) override;
 
 private:
-    static bool onListLaunchPoints(LSHandle* sh, LSMessage* response, void* context);
-    bool addToDatabase(JValue &launchPoint);
+    static bool onListApps(LSHandle* sh, LSMessage* response, void* context);
+    bool addToDatabase(JValue &app);
 
     SAM();
 
-    Call m_listLaunchPointsCall;
+    Call m_listAppsCall;
 };
 
 #endif  // BUS_CLIENT_SAM_H_
