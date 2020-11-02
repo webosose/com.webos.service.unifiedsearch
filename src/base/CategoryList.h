@@ -42,16 +42,16 @@ public:
     bool onInitialization();
     bool onFinalization();
 
-    bool addCategory(Category* category);
+    bool addCategory(CategoryPtr category);
     bool removeCategory(string name);
 
-    Category* find(string name);
+    CategoryPtr find(string name);
     map<string, vector<IntentPtr>> search(string searchKey);
 
 private:
     CategoryList();
 
-    map<string, Category*> m_categories;
+    map<string, CategoryPtr> m_categories;
 };
 
 #endif /* BASE_DATABASE_H_ */

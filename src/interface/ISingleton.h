@@ -34,7 +34,6 @@ public:
 
 protected:
     ISingleton() {};
-
 };
 
 #endif /* INTERFACE_ISINGLETON_H_ */

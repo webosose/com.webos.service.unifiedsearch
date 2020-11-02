@@ -14,28 +14,35 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BUS_CLIENT_SAM_H_
-#define BUS_CLIENT_SAM_H_
+#ifndef BUS_CLIENT_SETTINGSERVICE_H_
+#define BUS_CLIENT_SETTINGSERVICE_H_
 
 #include <luna-service2/lunaservice.hpp>
+#include <boost/signals2.hpp>
 #include <pbnjson.hpp>
 
 #include "AbsLunaClient.h"
-#include "base/Category.h"
-#include "clients/AppContents.h"
-#include "clients/Applications.h"
 #include "interface/ISingleton.h"
 #include "util/Logger.h"
 
-using namespace std;
 using namespace LS;
 using namespace pbnjson;
 
-class SAM : public AbsLunaClient
-          , public ISingleton<SAM> {
-friend class ISingleton<SAM>;
+class SettingService : public ISingleton<SettingService>,
+                       public AbsLunaClient {
+friend class ISingleton<SettingService>;
 public:
-    virtual ~SAM();
+    virtual ~SettingService();
+
+    const string& localeInfo() const
+    {
+        return m_localeInfo;
+    }
+
+    const string& language() const
+    {
+        return m_language;
+    }
 
 protected:
     // AbsLunaClient
@@ -44,14 +51,16 @@ protected:
     virtual void onServerStatusChanged(bool isConnected) override;
 
 private:
-    static bool onListApps(LSHandle* sh, LSMessage* response, void* context);
+    static bool onLocaleChanged(LSHandle* sh, LSMessage* message, void* context);
 
-    SAM();
+    SettingService();
 
-    Call m_listAppsCall;
+    void updateLocaleInfo(const JValue& localeInfo);
 
-    shared_ptr<AppContentsList> m_contentList;
-    shared_ptr<Applications> m_applications;
+    string m_localeInfo;
+    string m_language;
+
+    Call m_getSystemSettingsCall;
+
 };
-
-#endif  // BUS_CLIENT_SAM_H_
+#endif // BUS_CLIENT_SETTINGSERVICE_H_

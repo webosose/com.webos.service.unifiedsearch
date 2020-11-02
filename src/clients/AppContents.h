@@ -14,16 +14,16 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BUS_CLIENT_SAM_H_
-#define BUS_CLIENT_SAM_H_
+#ifndef BUS_CLIENT_APPCONTENTS_H_
+#define BUS_CLIENT_APPCONTENTS_H_
 
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
+#include <map>
 
-#include "AbsLunaClient.h"
 #include "base/Category.h"
-#include "clients/AppContents.h"
-#include "clients/Applications.h"
+
+#include "interface/IClassName.h"
 #include "interface/ISingleton.h"
 #include "util/Logger.h"
 
@@ -31,27 +31,38 @@ using namespace std;
 using namespace LS;
 using namespace pbnjson;
 
-class SAM : public AbsLunaClient
-          , public ISingleton<SAM> {
-friend class ISingleton<SAM>;
+class AppContents : public Category
+                  , public IClassName {
 public:
-    virtual ~SAM();
+    AppContents(string name, JValue &app);
+    virtual ~AppContents();
 
-protected:
-    // AbsLunaClient
-    virtual void onInitialzed() override;
-    virtual void onFinalized() override;
-    virtual void onServerStatusChanged(bool isConnected) override;
+    IntentPtr generateIntent(SearchItemPtr item);
+
+    bool eraseCategory();
 
 private:
-    static bool onListApps(LSHandle* sh, LSMessage* response, void* context);
+    bool createIndexes();
 
-    SAM();
+    map<string, map<string, string>> getLabels();
 
-    Call m_listAppsCall;
-
-    shared_ptr<AppContentsList> m_contentList;
-    shared_ptr<Applications> m_applications;
+    JValue m_appInfo;
 };
 
-#endif  // BUS_CLIENT_SAM_H_
+typedef shared_ptr<AppContents> AppContentsPtr;
+
+// For list control (haven't separate because it's to small)
+class AppContentsList : public IClassName {
+public:
+    AppContentsList() : IClassName("AppContentsList") {}
+    virtual ~AppContentsList() {}
+
+    bool add(JValue &app);
+    bool remove(string &id);
+
+private:
+
+    map<string, AppContentsPtr> m_appContentsMap;
+};
+
+#endif  // BUS_CLIENT_AppContents_H_

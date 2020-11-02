@@ -23,6 +23,7 @@
 #include "bus/service/UnifiedSearch.h"
 #include "bus/client/Configd.h"
 #include "bus/client/SAM.h"
+#include "bus/client/SettingService.h"
 
 #include "conf/ConfFile.h"
 #include "util/JValueUtil.h"
@@ -42,6 +43,7 @@ MainDaemon::~MainDaemon()
 
 void MainDaemon::initialize()
 {
+    SettingService::getInstance().initialize();
     ConfFile::getInstance().initialize();
     Database::getInstance().initialize();
     CategoryList::getInstance().initialize();
@@ -55,6 +57,7 @@ void MainDaemon::finalize()
     CategoryList::getInstance().finalize();
     Database::getInstance().finalize();
     Configd::getInstance().finalize();
+    SettingService::getInstance().finalize();
 }
 
 void MainDaemon::start()

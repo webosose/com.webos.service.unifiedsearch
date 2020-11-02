@@ -23,7 +23,6 @@
 
 Category::Category(string name) : m_name(name)
 {
-    CategoryList::getInstance().addCategory(this);
 }
 
 Category::~Category()

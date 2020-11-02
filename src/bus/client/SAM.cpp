@@ -20,9 +20,7 @@
 #include "base/CategoryList.h"
 #include "util/File.h"
 
-SAM::SAM()
-    : AbsLunaClient("com.webos.applicationManager")
-    , Category("SAM")
+SAM::SAM() : AbsLunaClient("com.webos.applicationManager")
 {
     setClassName("SAM");
 }
@@ -33,6 +31,9 @@ SAM::~SAM()
 
 void SAM::onInitialzed()
 {
+    m_contentList = make_shared<AppContentsList>();
+    m_applications = make_shared<Applications>();
+    CategoryList::getInstance().addCategory(m_applications);
 }
 
 void SAM::onFinalized()
@@ -59,32 +60,11 @@ void SAM::onServerStatusChanged(bool isConnected)
     }
 }
 
-bool SAM::addToDatabase(JValue &app)
-{
-    bool visible;
-    if (JValueUtil::getValue(app, "visible", visible) && !visible) {
-        // ignore non-visible apps
-        return false;
-    }
-
-    string id, title, icon, folderPath;
-    JValueUtil::getValue(app, "id", id);
-    JValueUtil::getValue(app, "title", title);
-    JValueUtil::getValue(app, "folderPath", folderPath);
-    JValueUtil::getValue(app, "icon", icon);
-
-    JValue extra = Object();
-    extra.put("title", title);
-    extra.put("icon", File::join(folderPath, icon));
-
-    // create search item and insert
-    SearchItemPtr item = make_shared<SearchItem>(getCategoryName(), id, title, extra);
-    return Database::getInstance().insert(item);
-}
-
 bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
 {
-    SAM *sam = static_cast<SAM*>(context);
+    auto sam = static_cast<SAM*>(context);
+    auto appInst = sam->m_applications;
+    auto contentList = sam->m_contentList;
 
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
@@ -99,12 +79,10 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
     if (JValueUtil::getValue(subscriptionPayload, "apps", apps)) {
         // First time, get lists
         if (apps.isArray()) {
-            // remove old items first
-            // TODO: it's better to update(replace) only updated one - needs better logic
-            Database::getInstance().remove(sam->getCategoryName());
             // add new items
             for (auto lp : apps.items()) {
-                sam->addToDatabase(lp);
+                appInst->addToDatabase(lp);
+                contentList->add(lp);
             }
             Logger::info(sam->getClassName(), __FUNCTION__, Logger::format("Add %d item(s)", apps.arraySize()));
         }
@@ -113,35 +91,18 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
         JValue app = Object();
         if (JValueUtil::getValue(subscriptionPayload, "app", app)) {
             if (change == "added") {
-                sam->addToDatabase(app);
+                appInst->addToDatabase(app);
+                contentList->add(app);
                 Logger::info(sam->getClassName(), __FUNCTION__, "Add a item");
             } else if (change == "removed") {
                 string id;
-                JValueUtil::getValue(app, "appId", id);
-                Database::getInstance().remove(sam->getCategoryName(), id);
+                JValueUtil::getValue(app, "id", id);
+                appInst->removeFromDatabase(id);
+                contentList->remove(id);
                 Logger::info(sam->getClassName(), __FUNCTION__, "Remove a item");
             }
         }
     }
 
     return true;
-}
-
-IntentPtr SAM::generateIntent(SearchItemPtr item)
-{
-    auto intent = make_shared<Intent>(getCategoryName());
-    
-/*
-    // For now, we using explicit intent because intent manager doesn't accept service as a intent handler.
-    intent->setAction("launch");
-    intent->setUri(string("app://") + item->getKey());
-*/
-
-    // to create explicit intent
-    intent->getBase().put("name", item->getKey());
-
-    // set intent
-    intent->setExtra(item->getExtra());
-
-    return intent;
 }

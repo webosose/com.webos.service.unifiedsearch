@@ -24,7 +24,7 @@ using namespace std;
 class IClassName {
 public:
     IClassName() : m_name("Unknown") {}
-    IClassName(string &name) : m_name(name) {}
+    IClassName(const char *name) : m_name(name) {}
     virtual ~IClassName() {}
 
     const string& getClassName() const

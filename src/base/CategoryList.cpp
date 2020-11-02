@@ -40,7 +40,7 @@ bool CategoryList::onFinalization()
     return true;
 }
 
-bool CategoryList::addCategory(Category* category)
+bool CategoryList::addCategory(CategoryPtr category)
 {
     if (!category) {
         Logger::warning(getClassName(), __FUNCTION__, "Null category");
@@ -68,7 +68,7 @@ bool CategoryList::removeCategory(string name)
     return true;
 }
 
-Category* CategoryList::find(string name)
+CategoryPtr CategoryList::find(string name)
 {
     auto category = m_categories.find(name);
     if (category != m_categories.end()) {
@@ -84,7 +84,7 @@ map<string, vector<IntentPtr>> CategoryList::search(string searchKey)
     auto items = Database::getInstance().search(searchKey);
     for (auto c : items) {
         const string &cateName = c->getCategory();
-        Category* category = find(cateName);
+        CategoryPtr category = find(cateName);
         if (category) {
             if (allIntents.find(cateName) == allIntents.end()) {
                 allIntents.insert({cateName, vector<IntentPtr>()});
@@ -92,7 +92,7 @@ map<string, vector<IntentPtr>> CategoryList::search(string searchKey)
 
             IntentPtr intent = category->generateIntent(c);
             allIntents[cateName].push_back(intent);
-            Logger::debug(getClassName(), __FUNCTION__, Logger::format("Item: %s, %s", cateName.c_str(), c->getKey().c_str()));
+            Logger::debug(getClassName(), __FUNCTION__, Logger::format("Item: %s, %s", category->getCategoryName().c_str(), c->getKey().c_str()));
         } else {
             Logger::warning(getClassName(), __FUNCTION__, Logger::format("Ignore '%s': There is no %s category.",
                 c->getKey().c_str(),
