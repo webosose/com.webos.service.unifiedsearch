@@ -40,13 +40,15 @@ AppContents::~AppContents()
 
 bool AppContents::createIndexes()
 {
-    string indexFile, folderPath, icon;
+    string id, searchIndex, folderPath, icon;
+    JValueUtil::getValue(m_appInfo, "id", id);
     JValueUtil::getValue(m_appInfo, "folderPath", folderPath);
-    JValueUtil::getValue(m_appInfo, "searchIndex", indexFile);
+    JValueUtil::getValue(m_appInfo, "searchIndex", searchIndex);
     JValueUtil::getValue(m_appInfo, "icon", icon);
 
-    string indexFilePath = File::join(folderPath, indexFile);
+    string indexFilePath = File::join(folderPath, searchIndex);
     JValue indexJson = JDomParser::fromFile(indexFilePath.c_str());
+    Logger::info(getClassName(), __FUNCTION__, Logger::format("Start parse %s/%s", id.c_str(), searchIndex.c_str()));
 
     if (!indexJson.isValid()) {
         Logger::warning(getClassName(), __FUNCTION__, Logger::format("Index file is not exist or invalid format : %s", indexFilePath.c_str()));
@@ -59,29 +61,32 @@ bool AppContents::createIndexes()
         return false;
     }
 
-    string action, uri;
-    JValueUtil::getValue(indexJson, "action", action);
-    JValueUtil::getValue(indexJson, "uri", uri);
-
     // get all labels
     map<string, map<string, string>> allLabels = getLabels();
+    if (allLabels.empty()) {
+        Logger::warning(getClassName(), __FUNCTION__, Logger::format("Failed to load labels : %s", id.c_str()));
+        return false;
+    }
 
     JValue display = Object();
     display.put("icon", File::join(folderPath, icon));
 
     // per search item
+    int count = 0;
     for (auto item : items.items()) {
         string path;
         JValue labelKeys, titles, extra;
         string searchValue;
-        bool first = true;
 
-        if (!JValueUtil::getValue(item, "path", path)) {
-            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Index doesn't have intent or wrong: %s", item.stringify().c_str()));
+        bool hasPath = JValueUtil::getValue(item, "path", path);
+        bool hasExtra = JValueUtil::getValue(item, "extra", extra);
+        if (!hasPath && !hasExtra) {
+            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Item should have one of the 'path' or 'extra': %s", item.stringify().c_str()));
             continue;
         }
+
         if (!JValueUtil::getValue(item, "labels", labelKeys) || !labelKeys.isArray()) {
-            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Index doesn't have labels or wrong: %s", item.stringify().c_str()));
+            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Item doesn't have 'labels': %s", item.stringify().c_str()));
             continue;
         }
 
@@ -111,9 +116,7 @@ bool AppContents::createIndexes()
 
             // for all languages
             for (auto label : labelLangs) {
-                if (first) {
-                    first = false;
-                } else {
+                if (searchValue.size() > 0) {
                     searchValue += ", ";
                 }
                 searchValue += label.second;
@@ -122,16 +125,20 @@ bool AppContents::createIndexes()
 
         // if no searchValue, ignore it
         if (searchValue.size() == 0) {
-            Logger::warning(getClassName(), __FUNCTION__, Logger::format("No resources for '%s' path.", path.c_str()));
+            Logger::warning(getClassName(), __FUNCTION__, Logger::format("No label resources: %s", item.stringify().c_str()));
             continue;
         }
 
-        // get extra for item
-        JValueUtil::getValue(item, "extra", extra);
+        // generate key
+        string key = string("app://") + id + path;
+        SearchItemPtr sItem = make_shared<SearchItem>(getCategoryName(), key, searchValue, display, extra);
 
-        SearchItemPtr sItem = make_shared<SearchItem>(getCategoryName(), uri + path, searchValue, display, extra);
-        Database::getInstance().insert(sItem);
+        // add to database
+        if (Database::getInstance().insert(sItem)) {
+            count++;
+        }
     }
+    Logger::info(getClassName(), __FUNCTION__, Logger::format("End parse %s : %d added", id.c_str(), count));
 
     return true;
 }
@@ -143,7 +150,7 @@ IntentPtr AppContents::generateIntent(SearchItemPtr item)
     intent->setUri(item->getKey());
     intent->setExtra(item->getExtra());
 
-    JValue title, display = item->getDisplay().duplicate();
+    JValue title, display = item->getDisplay();
     string curTitle, icon;
 
     // replace title object to string by choosing language
@@ -175,7 +182,8 @@ bool AppContents::eraseCategory()
  */
 map<string, map<string, string>> AppContents::getLabels()
 {
-    string folderPath;
+    string id, folderPath;
+    JValueUtil::getValue(m_appInfo, "id", id);
     JValueUtil::getValue(m_appInfo, "folderPath", folderPath);
 
     // open manifest and get label filenames
@@ -188,24 +196,36 @@ map<string, map<string, string>> AppContents::getLabels()
     map<string, map<string, string>> allLabels;
 
     JValue labelFiles;
-    if (JValueUtil::getValue(manifest, "files", labelFiles) && labelFiles.isArray()) {
-        // read each label file (for now, all language will be loaded)
-        for (auto labelFileObj : labelFiles.items()) {
-            string labelFile = labelFileObj.asString();
-            if (labelFile.empty() || labelFile == manifestFileName)
-                continue;
+    if (!JValueUtil::getValue(manifest, "files", labelFiles) || !labelFiles.isArray()) {
+        Logger::warning(getClassName(), __FUNCTION__, Logger::format("resources/ilibmanifest.json doesn't exist: %d", id.c_str()));
+        return allLabels;
+    }
 
-            string language = labelFile.substr(0, labelFile.find("/"));
-            JValue labels = JDomParser::fromFile(File::join(resourceFolder, labelFile).c_str());
-            for (auto label : labels.children()) {
-                string key = label.first.asString();
-                string value = label.second.asString();
-                if (allLabels.find(key) == allLabels.end()) {
-                    allLabels.insert({key, map<string, string>()});
-                }
-                // concat all languages
-                allLabels[key][language] = value;
+    // read each label file (for now, all language will be loaded)
+    for (auto labelFileObj : labelFiles.items()) {
+        string labelFile = labelFileObj.asString();
+        if (labelFile.empty() || labelFile.find("strings") == string::npos)
+            continue;
+
+        string language = "en";
+        if (labelFile.find("/") != string::npos) {
+            language = labelFile.substr(0, labelFile.find("/"));
+        }
+
+        JValue labels = JDomParser::fromFile(File::join(resourceFolder, labelFile).c_str());
+        if (!labels.isObject()) {
+            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Wrong label file: %s", labelFile.c_str()));
+            continue;
+        }
+
+        for (auto label : labels.children()) {
+            string key = label.first.asString();
+            string value = label.second.asString();
+            if (allLabels.find(key) == allLabels.end()) {
+                allLabels.insert({key, map<string, string>()});
             }
+            // concat all languages
+            allLabels[key][language] = value;
         }
     }
 
@@ -227,7 +247,6 @@ bool AppContentsList::add(JValue &app)
             return false;
         }
 
-        Logger::warning(getClassName(), __FUNCTION__, Logger::format("Try to parse %s: %s", id.c_str(), searchIndex.c_str()));
         auto appContent = make_shared<AppContents>(title, app);
         CategoryList::getInstance().addCategory(appContent);
         m_appContentsMap.insert({id, appContent});
