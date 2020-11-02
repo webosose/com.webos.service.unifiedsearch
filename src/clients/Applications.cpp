@@ -48,12 +48,12 @@ bool Applications::addToDatabase(JValue &app)
     JValueUtil::getValue(app, "folderPath", folderPath);
     JValueUtil::getValue(app, "icon", icon);
 
-    JValue extra = Object();
-    extra.put("title", title);
-    extra.put("icon", File::join(folderPath, icon));
+    JValue display = Object();
+    display.put("title", title);
+    display.put("icon", File::join(folderPath, icon));
 
     // create search item and insert
-    SearchItemPtr item = make_shared<SearchItem>(getCategoryName(), id, title, extra);
+    SearchItemPtr item = make_shared<SearchItem>(getCategoryName(), id, title, display);
     return Database::getInstance().insert(item);
 }
 
@@ -71,7 +71,7 @@ IntentPtr Applications::generateIntent(SearchItemPtr item)
     intent->getBase().put("name", item->getKey());
 
     // set intent
-    intent->setExtra(item->getExtra());
+    intent->setDisplay(item->getDisplay());
 
     return intent;
 }

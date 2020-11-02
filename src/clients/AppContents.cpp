@@ -66,13 +66,13 @@ bool AppContents::createIndexes()
     // get all labels
     map<string, map<string, string>> allLabels = getLabels();
 
-    JValue extra = Object();
-    extra.put("icon", File::join(folderPath, icon));
+    JValue display = Object();
+    display.put("icon", File::join(folderPath, icon));
 
     // per search item
     for (auto item : items.items()) {
         string path;
-        JValue labelKeys, titles;
+        JValue labelKeys, titles, extra;
         string searchValue;
         bool first = true;
 
@@ -106,7 +106,7 @@ bool AppContents::createIndexes()
                 for (auto label : labelLangs) {
                     titles.put(label.first, label.second);
                 }
-                extra.put("title", titles);
+                display.put("title", titles);
             }
 
             // for all languages
@@ -126,7 +126,10 @@ bool AppContents::createIndexes()
             continue;
         }
 
-        SearchItemPtr sItem = make_shared<SearchItem>(getCategoryName(), uri + path, searchValue, extra);
+        // get extra for item
+        JValueUtil::getValue(item, "extra", extra);
+
+        SearchItemPtr sItem = make_shared<SearchItem>(getCategoryName(), uri + path, searchValue, display, extra);
         Database::getInstance().insert(sItem);
     }
 
@@ -138,24 +141,20 @@ IntentPtr AppContents::generateIntent(SearchItemPtr item)
     auto intent = make_shared<Intent>(getCategoryName());
     intent->setAction("view");
     intent->setUri(item->getKey());
+    intent->setExtra(item->getExtra());
 
-    JValue title, extra = Object();
+    JValue title, display = item->getDisplay().duplicate();
     string curTitle, icon;
 
-    // get titles and choose for language
-    if (JValueUtil::getValue(item->getExtra(), "title", title) && title.isObject()) {
+    // replace title object to string by choosing language
+    if (JValueUtil::getValue(display, "title", title) && title.isObject()) {
         string lang = SettingService::getInstance().language();
         if (!JValueUtil::getValue(title, lang, curTitle)) {
             JValueUtil::getValue(title, "en", curTitle); // fallback = en
         }
     }
-    extra.put("title", curTitle);
-
-    if (JValueUtil::getValue(item->getExtra(), "icon", icon)) {
-        extra.put("icon", icon);
-    }
-
-    intent->setExtra(extra);
+    display.put("title", curTitle);
+    intent->setDisplay(display);
 
     return intent;
 }

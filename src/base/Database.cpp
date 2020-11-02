@@ -22,8 +22,8 @@
 #include "util/File.h"
 #include "util/Logger.h"
 
-#define TABLE_QUERY "CREATE VIRTUAL TABLE IF NOT EXISTS Items USING FTS3(category, key, text, extra);"
-#define INSERT_QUERY "INSERT INTO Items values (?, ?, ?, ?);"
+#define TABLE_QUERY "CREATE VIRTUAL TABLE IF NOT EXISTS Items USING FTS3(category, key, text, display, extra);"
+#define INSERT_QUERY "INSERT INTO Items values (?, ?, ?, ?, ?);"
 #define DELETE_QUERY_PRE "DELETE FROM Items WHERE category = '"
 #define SELECT_QUERY_PRE "SELECT * FROM Items WHERE text MATCH '"
 
@@ -77,13 +77,15 @@ bool Database::insert(SearchItemPtr item)
     }
 
     // to use SQLITE_STATIC (don't copy)
+    string display = item->getDisplay().stringify();
     string extra = item->getExtra().stringify();
 
     sqlite3_reset(m_insertStmt);
     sqlite3_bind_text(m_insertStmt, 1, item->getCategory().c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(m_insertStmt, 2, item->getKey().c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(m_insertStmt, 3, item->getValue().c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(m_insertStmt, 4, extra.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(m_insertStmt, 4, display.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(m_insertStmt, 5, extra.c_str(), -1, SQLITE_STATIC);
 
     if (sqlite3_step(m_insertStmt) != SQLITE_DONE) {
         const char *err_msg = sqlite3_errmsg(m_database);
@@ -126,10 +128,10 @@ vector<SearchItemPtr> Database::search(string searchKey)
     string query = string(SELECT_QUERY_PRE) + searchKey + "*';";
     int ret = sqlite3_exec(m_database, query.c_str(), [] (void *data, int n, char **row, char **colNames) -> int {
         vector<SearchItemPtr> *items = static_cast<vector<SearchItemPtr>*>(data);
-        if (n > 3 && strlen(row[3]) >= 2) {
-            items->push_back(make_shared<SearchItem>(row[0], row[1], row[2], JDomParser::fromString(row[3])));
+        if (n > 4 && strlen(row[4]) >= 2) {
+            items->push_back(make_shared<SearchItem>(row[0], row[1], row[2], JDomParser::fromString(row[3]), JDomParser::fromString(row[4])));
         } else {
-            items->push_back(make_shared<SearchItem>(row[0], row[1], row[2]));
+            items->push_back(make_shared<SearchItem>(row[0], row[1], row[2], JDomParser::fromString(row[3])));
         }
         return 0;
     }, &searchedItems, &err_msg);
