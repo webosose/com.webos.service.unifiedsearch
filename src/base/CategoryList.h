@@ -43,9 +43,9 @@ public:
     bool onFinalization();
 
     bool addCategory(CategoryPtr category);
-    bool removeCategory(string name);
+    bool removeCategory(string id);
 
-    CategoryPtr find(string name);
+    CategoryPtr find(string id);
     map<string, vector<IntentPtr>> search(string searchKey);
 
 private:

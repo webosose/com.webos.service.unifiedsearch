@@ -32,13 +32,18 @@ using namespace pbnjson;
 
 class Category : public ISerializable {
 public:
-    Category(string name);
+    Category(string id, string name = "");
     virtual ~Category();
 
+    void setCategoryName(string name) { m_name = name; }
+
+    const string& getCategoryId() { return m_id; }
     const string& getCategoryName() { return m_name; }
+
     virtual IntentPtr generateIntent(SearchItemPtr item) = 0;
 
 protected:
+    string m_id;
     string m_name;
 };
 

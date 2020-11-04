@@ -47,30 +47,30 @@ bool CategoryList::addCategory(CategoryPtr category)
         return false;
     }
 
-    string name = category->getCategoryName();
-    if (m_categories.find(name) != m_categories.end()) {
-        Logger::warning(getClassName(), __FUNCTION__, Logger::format("Already exist category: %s", name.c_str()));
+    string id = category->getCategoryId();
+    if (m_categories.find(id) != m_categories.end()) {
+        Logger::warning(getClassName(), __FUNCTION__, Logger::format("Already exist category: %s", id.c_str()));
         return false;
     }
 
-    m_categories.insert({name, category});
+    m_categories.insert({id, category});
     return true;
 }
 
-bool CategoryList::removeCategory(string name)
+bool CategoryList::removeCategory(string id)
 {
-    if (m_categories.find(name) == m_categories.end()) {
-        Logger::warning(getClassName(), __FUNCTION__, Logger::format("Not exist category: %s", name.c_str()));
+    if (m_categories.find(id) == m_categories.end()) {
+        Logger::warning(getClassName(), __FUNCTION__, Logger::format("Not exist category: %s", id.c_str()));
         return false;
     }
 
-    m_categories.erase(name);
+    m_categories.erase(id);
     return true;
 }
 
-CategoryPtr CategoryList::find(string name)
+CategoryPtr CategoryList::find(string id)
 {
-    auto category = m_categories.find(name);
+    auto category = m_categories.find(id);
     if (category != m_categories.end()) {
         return category->second;
     }
@@ -83,20 +83,21 @@ map<string, vector<IntentPtr>> CategoryList::search(string searchKey)
 
     auto items = Database::getInstance().search(searchKey);
     for (auto c : items) {
-        const string &cateName = c->getCategory();
-        CategoryPtr category = find(cateName);
+        const string &cateId = c->getCategory();
+        CategoryPtr category = find(cateId);
         if (category) {
+            const string &cateName = category->getCategoryName();
             if (allIntents.find(cateName) == allIntents.end()) {
                 allIntents.insert({cateName, vector<IntentPtr>()});
             }
 
             IntentPtr intent = category->generateIntent(c);
             allIntents[cateName].push_back(intent);
-            Logger::debug(getClassName(), __FUNCTION__, Logger::format("Item: %s, %s", category->getCategoryName().c_str(), c->getKey().c_str()));
+            Logger::debug(getClassName(), __FUNCTION__, Logger::format("Item: %s, %s", cateName.c_str(), c->getKey().c_str()));
         } else {
             Logger::warning(getClassName(), __FUNCTION__, Logger::format("Ignore '%s': There is no %s category.",
                 c->getKey().c_str(),
-                cateName.c_str()));
+                cateId.c_str()));
         }
     }
 

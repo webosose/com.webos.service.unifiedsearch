@@ -34,7 +34,7 @@ using namespace pbnjson;
 class AppContents : public Category
                   , public IClassName {
 public:
-    AppContents(string name, JValue &app);
+    AppContents(string id, string name, JValue &app);
     virtual ~AppContents();
 
     IntentPtr generateIntent(SearchItemPtr item);
@@ -59,6 +59,7 @@ public:
 
     bool add(JValue &app);
     bool remove(string &id);
+    AppContentsPtr find(string &id);
 
 private:
 

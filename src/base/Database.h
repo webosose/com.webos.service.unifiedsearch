@@ -22,6 +22,7 @@
 
 #include <sqlite3.h>
 
+#include "base/Category.h"
 #include "base/SearchItem.h"
 #include "interface/IInitializable.h"
 #include "interface/ISingleton.h"
@@ -36,6 +37,9 @@ public:
 
     bool onInitialization();
     bool onFinalization();
+
+    bool createCategory(CategoryPtr cate);
+    bool removeCategory(string cateId);
 
     bool insert(SearchItemPtr item);
     bool remove(string category, string key = "");

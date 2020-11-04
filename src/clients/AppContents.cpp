@@ -22,8 +22,8 @@
 #include "util/File.h"
 #include "util/JValueUtil.h"
 
-AppContents::AppContents(string name, JValue &app)
-    : Category(name)
+AppContents::AppContents(string id, string name, JValue &app)
+    : Category(id, name)
     , m_appInfo(app)
 {
     setClassName("AppContents");
@@ -131,7 +131,7 @@ bool AppContents::createIndexes()
 
         // generate key
         string key = string("app://") + id + path;
-        SearchItemPtr sItem = make_shared<SearchItem>(getCategoryName(), key, searchValue, display, extra);
+        SearchItemPtr sItem = make_shared<SearchItem>(getCategoryId(), key, searchValue, display, extra);
 
         // add to database
         if (Database::getInstance().insert(sItem)) {
@@ -145,7 +145,7 @@ bool AppContents::createIndexes()
 
 IntentPtr AppContents::generateIntent(SearchItemPtr item)
 {
-    auto intent = make_shared<Intent>(getCategoryName());
+    auto intent = make_shared<Intent>(getCategoryId());
     intent->setAction("view");
     intent->setUri(item->getKey());
     intent->setExtra(item->getExtra());
@@ -168,7 +168,7 @@ IntentPtr AppContents::generateIntent(SearchItemPtr item)
 
 bool AppContents::eraseCategory()
 {
-    Database::getInstance().remove(getCategoryName());
+    Database::getInstance().remove(getCategoryId());
     return true;
 }
 
@@ -247,7 +247,7 @@ bool AppContentsList::add(JValue &app)
             return false;
         }
 
-        auto appContent = make_shared<AppContents>(title, app);
+        auto appContent = make_shared<AppContents>(id, title, app);
         CategoryList::getInstance().addCategory(appContent);
         m_appContentsMap.insert({id, appContent});
         return true;
@@ -265,6 +265,15 @@ bool AppContentsList::remove(string &id)
 
     it->second->eraseCategory();
     m_appContentsMap.erase(it);
-    CategoryList::getInstance().removeCategory(it->second->getCategoryName());
+    CategoryList::getInstance().removeCategory(it->second->getCategoryId());
     return true;
+}
+
+AppContentsPtr AppContentsList::find(string &id)
+{
+    auto appContent = m_appContentsMap.find(id);
+    if (appContent != m_appContentsMap.end()) {
+        return appContent->second;
+    }
+    return nullptr;
 }

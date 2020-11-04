@@ -27,7 +27,7 @@ Applications::Applications() : Category("Applications")
 
     // remove old items first
     // TODO: it's better to update(replace) only updated one - needs better logic
-    Database::getInstance().remove(getCategoryName());
+    Database::getInstance().remove(getCategoryId());
 }
 
 Applications::~Applications()
@@ -53,13 +53,13 @@ bool Applications::addToDatabase(JValue &app)
     display.put("icon", File::join(folderPath, icon));
 
     // create search item and insert
-    SearchItemPtr item = make_shared<SearchItem>(getCategoryName(), id, title, display);
+    SearchItemPtr item = make_shared<SearchItem>(getCategoryId(), id, title, display);
     return Database::getInstance().insert(item);
 }
 
 IntentPtr Applications::generateIntent(SearchItemPtr item)
 {
-    auto intent = make_shared<Intent>(getCategoryName());
+    auto intent = make_shared<Intent>(getCategoryId());
 
 /*
     // For now, we using explicit intent because intent manager doesn't accept service as a intent handler.
@@ -78,5 +78,5 @@ IntentPtr Applications::generateIntent(SearchItemPtr item)
 
 bool Applications::removeFromDatabase(string &id)
 {
-    return Database::getInstance().remove(getCategoryName(), id);
+    return Database::getInstance().remove(getCategoryId(), id);
 }

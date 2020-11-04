@@ -21,7 +21,9 @@
 #include "util/File.h"
 #include "util/Logger.h"
 
-Category::Category(string name) : m_name(name)
+Category::Category(string id, string name)
+    : m_id(id)
+    , m_name(name.empty() ? id : name)
 {
 }
 

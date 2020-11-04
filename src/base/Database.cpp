@@ -22,10 +22,15 @@
 #include "util/File.h"
 #include "util/Logger.h"
 
-#define TABLE_QUERY "CREATE VIRTUAL TABLE IF NOT EXISTS Items USING FTS3(category, key, text, display, extra);"
-#define INSERT_QUERY "INSERT INTO Items values (?, ?, ?, ?, ?);"
-#define DELETE_QUERY_PRE "DELETE FROM Items WHERE category = '"
-#define SELECT_QUERY_PRE "SELECT * FROM Items WHERE text MATCH '"
+#define QUERY_CATE_TABLE "CREATE TABLE IF NOT EXISTS Category(id, name, intent);"
+#define QUERY_CATE_INSERT "INSERT INTO Category values (?, ?, ?);"
+#define QUERY_CATE_DELETE_PRE "DELETE FROM Category WHERE id = '"
+#define QUERY_CATE_SELECT_PRE "SELECT * FROM Category WHERE id = '"
+
+#define QUERY_ITEM_TABLE "CREATE VIRTUAL TABLE IF NOT EXISTS Items USING FTS3(category, key, text, display, extra);"
+#define QUERY_ITEM_INSERT "INSERT INTO Items values (?, ?, ?, ?, ?);"
+#define QUERY_ITEM_DELETE_PRE "DELETE FROM Items WHERE category = '"
+#define QUERY_ITEM_SELECT_PRE "SELECT * FROM Items WHERE text MATCH '"
 
 Database::Database()
 {
@@ -47,12 +52,12 @@ bool Database::onInitialization()
 
     // if it's not exist before, need table
     char *err_msg = nullptr;
-    if (sqlite3_exec(m_database, TABLE_QUERY, 0, 0, &err_msg) != SQLITE_OK) {
+    if (sqlite3_exec(m_database, QUERY_ITEM_TABLE, 0, 0, &err_msg) != SQLITE_OK) {
         Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to create table: %s", err_msg));
         return false;
     }
 
-    if (sqlite3_prepare(m_database, INSERT_QUERY, -1, &m_insertStmt, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare(m_database, QUERY_ITEM_INSERT, -1, &m_insertStmt, NULL) != SQLITE_OK) {
         Logger::error(getClassName(), __FUNCTION__, "Failed to create 'insert' statement");
         return false;
     }
@@ -66,6 +71,16 @@ bool Database::onFinalization()
     // close DB
     sqlite3_finalize(m_insertStmt);
     sqlite3_close(m_database);
+    return true;
+}
+
+bool Database::createCategory(CategoryPtr cate)
+{
+    return true;
+}
+
+bool Database::removeCategory(string cateId)
+{
     return true;
 }
 
@@ -105,7 +120,7 @@ bool Database::remove(string category, string key)
     }
 
     char *err_msg = nullptr;
-    string query = DELETE_QUERY_PRE;
+    string query = QUERY_ITEM_DELETE_PRE;
     query += category;
     if (!key.empty()) {
         query += "' AND key = '" + key;
@@ -125,7 +140,7 @@ vector<SearchItemPtr> Database::search(string searchKey)
     vector<SearchItemPtr> searchedItems;
 
     char *err_msg = nullptr;
-    string query = string(SELECT_QUERY_PRE) + searchKey + "*';";
+    string query = string(QUERY_ITEM_SELECT_PRE) + searchKey + "*';";
     int ret = sqlite3_exec(m_database, query.c_str(), [] (void *data, int n, char **row, char **colNames) -> int {
         vector<SearchItemPtr> *items = static_cast<vector<SearchItemPtr>*>(data);
         if (n > 4 && strlen(row[4]) >= 2) {

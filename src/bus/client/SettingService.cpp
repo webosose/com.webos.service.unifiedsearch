@@ -18,6 +18,8 @@
 
 #include <stdlib.h>
 
+#include "base/CategoryList.h"
+#include "bus/client/SAM.h"
 #include "bus/service/UnifiedSearch.h"
 #include "util/JValueUtil.h"
 
