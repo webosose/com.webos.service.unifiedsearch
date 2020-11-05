@@ -76,7 +76,7 @@ IntentPtr Applications::generateIntent(SearchItemPtr item)
     return intent;
 }
 
-bool Applications::removeFromDatabase(string &id)
+bool Applications::removeFromDatabase(string id)
 {
     return Database::getInstance().remove(getCategoryId(), id);
 }

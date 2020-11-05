@@ -102,8 +102,15 @@ void SettingService::updateLocaleInfo(const JValue& settings)
         return;
     }
 
-    m_localeInfo = localeInfo;
+    // ignore when first response
     if (!m_localeInfo.empty()) {
-        m_language = m_localeInfo.substr(0, m_localeInfo.find("-"));
+        // reload app titles
+        g_timeout_add(500, [] (gpointer data) -> gboolean {
+            SAM::getInstance().reloadAppsByLocaleChange();
+            return false;
+        }, nullptr);
     }
+
+    m_localeInfo = localeInfo;
+    m_language = localeInfo.substr(0, localeInfo.find("-"));
 }

@@ -76,16 +76,32 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
 
     JValue apps = Object();
     string change;
-    if (JValueUtil::getValue(subscriptionPayload, "apps", apps)) {
-        // First time, get lists
-        if (apps.isArray()) {
-            // add new items
-            for (auto lp : apps.items()) {
-                appInst->addToDatabase(lp);
-                contentList->add(lp);
+    if (JValueUtil::getValue(subscriptionPayload, "apps", apps) && apps.isArray()) {
+        // when app list comes, remove first
+        appInst->removeFromDatabase();
+
+        int countAdd = 0, countUpdate = 0;
+        for (auto lp : apps.items()) {
+            // add applications
+            if (appInst->addToDatabase(lp)) {
+                countAdd++;
             }
-            Logger::info(sam->getClassName(), __FUNCTION__, Logger::format("Add %d item(s)", apps.arraySize()));
+
+            // create or update appContent (don't recreate because it's to heavy)
+            string id, title;
+            JValueUtil::getValue(lp, "id", id);
+            JValueUtil::getValue(lp, "title", title);
+            auto appContent = contentList->find(id);
+            if (appContent) {
+                appContent->setCategoryName(title);
+                countUpdate++;
+            } else {
+                if (contentList->add(lp)) {
+                    countAdd++;
+                }
+            }
         }
+        Logger::info(sam->getClassName(), __FUNCTION__, Logger::format("Added: %d, Updated: %d", countAdd, countUpdate));
     } else if (JValueUtil::getValue(subscriptionPayload, "change", change)) {
         // Second~ (changed)
         JValue app = Object();
@@ -104,5 +120,17 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
         }
     }
 
+    return true;
+}
+
+bool SAM::reloadAppsByLocaleChange()
+{
+    if (!isConnected()) {
+        return false;
+    }
+
+    // resubscribe
+    m_listAppsCall.cancel();
+    onServerStatusChanged(true);
     return true;
 }

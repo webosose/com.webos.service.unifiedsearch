@@ -37,7 +37,7 @@ public:
     virtual ~Applications();
 
     bool addToDatabase(JValue &app);
-    bool removeFromDatabase(string &id);
+    bool removeFromDatabase(string id = "");
 
     IntentPtr generateIntent(SearchItemPtr item);
 };

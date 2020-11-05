@@ -37,6 +37,8 @@ friend class ISingleton<SAM>;
 public:
     virtual ~SAM();
 
+    bool reloadAppsByLocaleChange();
+
 protected:
     // AbsLunaClient
     virtual void onInitialzed() override;
