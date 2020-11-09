@@ -26,3 +26,7 @@ webos_component(1 0 0)
 
 add_subdirectory(core)
 add_subdirectory(src)
+
+if (USE_BUILTIN_PLUGIN)
+    add_subdirectory(plugins/media)
+endif()
