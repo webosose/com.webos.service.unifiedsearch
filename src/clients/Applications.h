@@ -20,11 +20,10 @@
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
 
-#include "base/Category.h"
+#include "Category.h"
 
 #include "interface/IClassName.h"
-#include "interface/ISingleton.h"
-#include "util/Logger.h"
+#include "Logger.h"
 
 using namespace std;
 using namespace LS;
@@ -41,5 +40,7 @@ public:
 
     IntentPtr generateIntent(SearchItemPtr item);
 };
+
+typedef shared_ptr<Applications> ApplicationsPtr;
 
 #endif  // BUS_CLIENT_Applications_H_

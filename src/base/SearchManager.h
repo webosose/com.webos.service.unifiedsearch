@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_CATEGORYLIST_H_
-#define BASE_CATEGORYLIST_H_
+#ifndef BASE_SEARCHMANAGER_H_
+#define BASE_SEARCHMANAGER_H_
 
 #include <map>
 #include <vector>
@@ -23,9 +23,9 @@
 #include <sqlite3.h>
 #include <pbnjson.hpp>
 
-#include "base/Category.h"
-#include "base/Intent.h"
-#include "base/SearchItem.h"
+#include "SearchSet.h"
+#include "Intent.h"
+#include "SearchItem.h"
 
 #include "interface/IClassName.h"
 #include "interface/ISingleton.h"
@@ -33,25 +33,41 @@
 
 using namespace std;
 
-class CategoryList : public IInitializable
-                   , public ISingleton<CategoryList> {
-friend class ISingleton<CategoryList>;
+class SearchManager : public IInitializable
+                   , public ISingleton<SearchManager> {
+friend class ISingleton<SearchManager>;
 public:
-    virtual ~CategoryList();
+    virtual ~SearchManager();
 
     bool onInitialization();
     bool onFinalization();
 
-    bool addCategory(CategoryPtr category);
-    bool removeCategory(string id);
+    bool addSearchSet(SearchSetPtr category);
+    bool removeSearchSet(string id);
+    SearchSetPtr findSearchSet(string id);
 
-    CategoryPtr find(string id);
-    map<string, vector<IntentPtr>> search(string searchKey);
+    using resultCB = function<void(map<string, vector<IntentPtr>>)>;
+    bool search(string searchKey, resultCB cb);
 
 private:
-    CategoryList();
+    SearchManager();
 
-    map<string, CategoryPtr> m_categories;
+    void loadPlugins();
+
+    class SearchTask {
+    public:
+        SearchTask(string key, resultCB cb);
+        ~SearchTask();
+
+        vector<IntentPtr>& get(string &category);
+
+    private:
+        string m_key;
+        resultCB m_callback;
+        map<string, vector<IntentPtr>> m_intents;
+    };
+
+    map<string, SearchSetPtr> m_searchSets;
 };
 
 #endif /* BASE_DATABASE_H_ */

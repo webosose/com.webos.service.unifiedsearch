@@ -1,6 +1,7 @@
 {
     "com.webos.service.unifiedsearch" : [
         "settings",
+        "database",
         "applications.internal"
     ]
 }

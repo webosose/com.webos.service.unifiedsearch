@@ -14,40 +14,44 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_SEARCHITEM_H_
-#define BASE_SEARCHITEM_H_
+#ifndef BASE_CORE_INTENT_H_
+#define BASE_CORE_INTENT_H_
 
 #include <map>
 #include <string>
 #include <pbnjson.hpp>
 
-#include "interface/IClassName.h"
-#include "interface/ISerializable.h"
-
 using namespace std;
 using namespace pbnjson;
 
-class SearchItem : public IClassName {
+class Intent {
 public:
-    SearchItem();
-    SearchItem(string category, string key, string value, JValue display);
-    SearchItem(string category, string key, string value, JValue display, JValue extra);
-    virtual ~SearchItem() {}
+    Intent(string category, JValue base = Object());
+    virtual ~Intent();
 
-    const string& getKey() { return m_key; }
+    void setAction(string action) { m_action = action; }
+    void setUri(string uri) { m_uri = uri; }
+    void setDisplay(JValue display) { m_display = display; }
+    void setExtra(JValue extra) { m_extra = extra; }
+
+    JValue& getBase() { return m_base; }
     const string& getCategory() { return m_category; }
-    const string& getValue() { return m_value; }
-    JValue& getDisplay() { return m_display; }
-    JValue& getExtra() { return m_extra; }
+    const string& getAction() { return m_action; }
+    const string& getUri() { return m_uri; }
+    const JValue& getDisplay() { return m_display; }
+    const JValue& getExtra() { return m_extra; }
+
+    bool toJson(JValue& json);
 
 private:
-    string m_key;
+    JValue m_base;
     string m_category;
-    string m_value;
+    string m_action;
+    string m_uri;
     JValue m_display;
     JValue m_extra;
 };
 
-typedef shared_ptr<SearchItem> SearchItemPtr;
+typedef shared_ptr<Intent> IntentPtr;
 
-#endif /* BASE_SEARCHITEM_H_ */
+#endif /* BASE_INTENT_H_ */

@@ -17,10 +17,11 @@
 #include <pbnjson.hpp>
 
 #include "base/Database.h"
+#include "base/SearchManager.h"
 
 #include "conf/ConfFile.h"
 #include "util/File.h"
-#include "util/Logger.h"
+#include "Logger.h"
 
 #define QUERY_CATE_TABLE "CREATE TABLE IF NOT EXISTS Category(id, name, intent);"
 #define QUERY_CATE_INSERT "INSERT INTO Category values (?, ?, ?);"
@@ -32,9 +33,13 @@
 #define QUERY_ITEM_DELETE_PRE "DELETE FROM Items WHERE category = '"
 #define QUERY_ITEM_SELECT_PRE "SELECT * FROM Items WHERE text MATCH '"
 
-Database::Database()
+Database::Database() : DataSource("sqlite3")
 {
     setClassName("Database");
+}
+
+Database::~Database()
+{
 }
 
 bool Database::onInitialization()
@@ -135,14 +140,14 @@ bool Database::remove(string category, string key)
     return true;
 }
 
-vector<SearchItemPtr> Database::search(string searchKey)
+bool Database::search(string searchKey, searchCB callback)
 {
     vector<SearchItemPtr> searchedItems;
 
     char *err_msg = nullptr;
     string query = string(QUERY_ITEM_SELECT_PRE) + searchKey + "*';";
     int ret = sqlite3_exec(m_database, query.c_str(), [] (void *data, int n, char **row, char **colNames) -> int {
-        vector<SearchItemPtr> *items = static_cast<vector<SearchItemPtr>*>(data);
+        auto items = static_cast<vector<SearchItemPtr>*>(data);
         if (n > 4 && strlen(row[4]) >= 2) {
             items->push_back(make_shared<SearchItem>(row[0], row[1], row[2], JDomParser::fromString(row[3]), JDomParser::fromString(row[4])));
         } else {
@@ -153,7 +158,10 @@ vector<SearchItemPtr> Database::search(string searchKey)
 
     if (ret != SQLITE_OK) {
         Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to search: %s", err_msg));
+        return false;
     }
 
-    return searchedItems;
+    Logger::info(getClassName(), __FUNCTION__, Logger::format("Find '%s' => %d item(s) on %s", searchKey.c_str(), searchedItems.size(), getId().c_str()));
+    callback(getId(), searchedItems);
+    return true;
 }

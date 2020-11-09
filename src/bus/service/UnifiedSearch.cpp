@@ -15,11 +15,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "bus/service/UnifiedSearch.h"
+#include "LunaClient.h"
 
 #include <string>
 #include <vector>
+#include <thread>
 
-#include "base/CategoryList.h"
+#include "base/SearchManager.h"
 
 #include "util/JValueUtil.h"
 #include "util/Time.h"
@@ -42,6 +44,7 @@ bool UnifiedSearch::onInitialization()
 {
     try {
         Handle::attachToLoop(m_mainloop);
+        LunaClient::setMainHandle(this);
     } catch(exception& e) {
     }
     return true;
@@ -54,19 +57,24 @@ bool UnifiedSearch::onFinalization()
 
 bool UnifiedSearch::search(LSMessage &message)
 {
+    auto task = make_shared<LunaResTask>(getClassName(), __FUNCTION__, &message);
+    auto requestPayload = task->requestPayload();
+    auto responsePayload = task->responsePayload();
 
-    Message request(&message);
-    pbnjson::JValue responsePayload = pbnjson::Object();
-    pbnjson::JValue requestPayload = JDomParser::fromString(request.getPayload());
+    Logger::logAPIRequest(getClassName(), __FUNCTION__, task->request(), requestPayload);
 
-    Logger::logAPIRequest(getInstance().getClassName(), __FUNCTION__, request, requestPayload);
+    string key;
+    if (!JValueUtil::getValue(requestPayload, "key", key) && key.empty()) {
+        responsePayload.put("errorText", "'key' isn't specified.");
+        responsePayload.put("returnValue", false);
+        return false;
+    }
 
-    string searchKey;
-    bool ret = true;
+    responsePayload.put("returnValue", true);
+    responsePayload.put("intents", Object());
 
-    if (JValueUtil::getValue(requestPayload, "key", searchKey) && !searchKey.empty()) {
-        auto allIntents = CategoryList::getInstance().search(searchKey);
-        JValue categoryMap = Object();
+    // search from SearchManager
+    auto allIntents = SearchManager::getInstance()->search(key, [this, task] (map<string, vector<IntentPtr>> allIntents) {
         for (auto category : allIntents) {
             auto intents = category.second;
             JValue intentArr = Array();
@@ -75,16 +83,31 @@ bool UnifiedSearch::search(LSMessage &message)
                 intent->toJson(obj);
                 intentArr << obj;
             }
-            categoryMap.put(category.first, intentArr);
+            task->responsePayload()["intents"].put(category.first, intentArr);
         }
-        responsePayload.put("intents", categoryMap);
-    } else {
-        responsePayload.put("errorText", "'key' isn't specified.");
-        ret = false;
-    }
+    });
 
-    responsePayload.put("returnValue", ret);
-    request.respond(responsePayload.stringify().c_str());
-    Logger::logAPIResponse(getInstance().getClassName(), __FUNCTION__, request, responsePayload);
-    return ret;
+    return true;
+}
+
+UnifiedSearch::LunaResTask::LunaResTask(string className, string funcName, LSMessage *msg)
+    : m_className(className)
+    , m_funcName(funcName)
+    , m_message(msg)
+    , m_response(Object())
+{
+    m_request = JDomParser::fromString(m_message.getPayload());
+}
+
+UnifiedSearch::LunaResTask::~LunaResTask() {
+    respond();
+}
+
+void UnifiedSearch::LunaResTask::respond() {
+    try {
+        m_message.respond(m_response.stringify().c_str());
+        Logger::logCallResponse(m_className, m_funcName, m_message, m_response);
+    } catch(exception& e) {
+        Logger::error(m_className, m_funcName, Logger::format("LunaResTask::respond exception: %s\n", e.what()));
+    }
 }

@@ -18,8 +18,7 @@
 #define BUS_SERVICE_UNIFIEDSEARCH_H_
 
 #include <string>
-#include <boost/function.hpp>
-#include <boost/signals2.hpp>
+#include <map>
 #include <pbnjson.hpp>
 #include <luna-service2/lunaservice.hpp>
 
@@ -43,6 +42,26 @@ protected:
 
 private:
     UnifiedSearch();
+
+    class LunaResTask {
+    public:
+        LunaResTask(string className, string funcName, LSMessage *msg);
+        ~LunaResTask();
+
+        Message &request() { return m_message; }
+        JValue &requestPayload() { return m_request; }
+        JValue &responsePayload() { return m_response; }
+
+        // generally, called on last callback executed automatically
+        void respond();
+
+    private:
+        string m_className;
+        string m_funcName;
+        Message m_message;
+        JValue m_request;
+        JValue m_response;
+    };
 
     bool search(LSMessage &message);
 };

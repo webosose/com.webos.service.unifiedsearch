@@ -22,18 +22,21 @@
 
 #include <sqlite3.h>
 
-#include "base/Category.h"
-#include "base/SearchItem.h"
+#include "Category.h"
+#include "DataSource.h"
+#include "SearchItem.h"
+
 #include "interface/IInitializable.h"
 #include "interface/ISingleton.h"
 
 using namespace std;
 
-class Database : public IInitializable
+class Database : public DataSource
+               , public IInitializable
                , public ISingleton<Database> {
 friend class ISingleton<Database>;
 public:
-    virtual ~Database() {}
+    virtual ~Database();
 
     bool onInitialization();
     bool onFinalization();
@@ -44,7 +47,7 @@ public:
     bool insert(SearchItemPtr item);
     bool remove(string category, string key = "");
 
-    vector<SearchItemPtr> search(string searchKey);
+    bool search(string searchKey, searchCB callback);
 
 private:
     Database();

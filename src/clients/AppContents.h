@@ -21,11 +21,10 @@
 #include <pbnjson.hpp>
 #include <map>
 
-#include "base/Category.h"
+#include "Category.h"
 
 #include "interface/IClassName.h"
-#include "interface/ISingleton.h"
-#include "util/Logger.h"
+#include "Logger.h"
 
 using namespace std;
 using namespace LS;
@@ -50,20 +49,5 @@ private:
 };
 
 typedef shared_ptr<AppContents> AppContentsPtr;
-
-// For list control (haven't separate because it's to small)
-class AppContentsList : public IClassName {
-public:
-    AppContentsList() : IClassName("AppContentsList") {}
-    virtual ~AppContentsList() {}
-
-    bool add(JValue &app);
-    bool remove(string &id);
-    AppContentsPtr find(string &id);
-
-private:
-
-    map<string, AppContentsPtr> m_appContentsMap;
-};
 
 #endif  // BUS_CLIENT_AppContents_H_

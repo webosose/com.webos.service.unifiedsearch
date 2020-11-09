@@ -24,4 +24,5 @@ include(webOS/webOS)
 webos_modules_init(1 0 0 QUALIFIER RC7)
 webos_component(1 0 0)
 
+add_subdirectory(core)
 add_subdirectory(src)

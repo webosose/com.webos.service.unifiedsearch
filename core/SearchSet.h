@@ -14,39 +14,35 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef BASE_CATEGORY_H_
-#define BASE_CATEGORY_H_
+#ifndef BASE_CORE_SEARCHSET_H_
+#define BASE_CORE_SEARCHSET_H_
 
 #include <map>
 #include <string>
-#include <pbnjson.hpp>
 
-#include "base/Intent.h"
-#include "base/SearchItem.h"
-
-#include "interface/IClassName.h"
-#include "interface/ISerializable.h"
+#include "DataSource.h"
+#include "Category.h"
 
 using namespace std;
-using namespace pbnjson;
 
-class Category : public ISerializable {
+class SearchSet {
 public:
-    Category(string id, string name = "");
-    virtual ~Category();
+    SearchSet(string id, DataSourcePtr source) : m_id(id), m_source(source) {}
 
-    void setCategoryName(string name) { m_name = name; }
+    const string& getId() { return m_id; }
+    DataSourcePtr getDataSource() { return m_source; }
+    map<string, CategoryPtr> getCategories() { return m_categories; }
 
-    const string& getCategoryId() { return m_id; }
-    const string& getCategoryName() { return m_name; }
+    bool addCategory(CategoryPtr category);
+    bool removeCategory(string id);
+    CategoryPtr findCategory(string id);
 
-    virtual IntentPtr generateIntent(SearchItemPtr item) = 0;
-
-protected:
+private:
     string m_id;
-    string m_name;
+    DataSourcePtr m_source;
+    map<string, CategoryPtr> m_categories;
 };
 
-typedef shared_ptr<Category> CategoryPtr;
+typedef shared_ptr<SearchSet> SearchSetPtr;
 
-#endif /* BASE_CATEGORY_H_ */
+#endif /* BASE_SEARCHSET_H_ */

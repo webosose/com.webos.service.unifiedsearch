@@ -21,15 +21,16 @@
 #include <boost/signals2.hpp>
 #include <pbnjson.hpp>
 
-#include "AbsLunaClient.h"
+#include "LunaClient.h"
+
 #include "interface/ISingleton.h"
-#include "util/Logger.h"
+#include "Logger.h"
 
 using namespace LS;
 using namespace pbnjson;
 
 class SettingService : public ISingleton<SettingService>,
-                       public AbsLunaClient {
+                       public LunaClient {
 friend class ISingleton<SettingService>;
 public:
     virtual ~SettingService();
@@ -45,7 +46,7 @@ public:
     }
 
 protected:
-    // AbsLunaClient
+    // LunaClient
     virtual void onInitialzed() override;
     virtual void onFinalized() override;
     virtual void onServerStatusChanged(bool isConnected) override;

@@ -14,29 +14,15 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef INTERFACE_ISINGLETON_H_
-#define INTERFACE_ISINGLETON_H_
+#include "Category.h"
 
-#include <iostream>
+Category::Category(string id, string name)
+    : m_id(id)
+    , m_name(name.empty() ? id : name)
+{
+}
 
-using namespace std;
+Category::~Category()
+{
 
-template <class T>
-class ISingleton {
-public:
-    virtual ~ISingleton() {};
-
-    static shared_ptr<T> getInstance()
-    {
-        static shared_ptr<T> _instance;
-        if (!_instance) {
-            _instance.reset(new T());
-        }
-        return _instance;
-    }
-
-protected:
-    ISingleton() {};
-};
-
-#endif /* INTERFACE_ISINGLETON_H_ */
+}

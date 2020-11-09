@@ -14,32 +14,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "base/SearchItem.h"
+#ifndef BASE_CORE_PLUGIN_H_
+#define BASE_CORE_PLUGIN_H_
 
-#include "conf/ConfFile.h"
-#include "util/File.h"
-#include "util/Logger.h"
+#include <string>
+#include <vector>
 
-SearchItem::SearchItem()
-{
-    setClassName("SearchItem");
-}
+#include "SearchSet.h"
 
-SearchItem::SearchItem(string category, string key, string value, JValue display)
-    : m_category(category)
-    , m_key(key)
-    , m_value(value)
-    , m_display(display)
-{
-    setClassName("SearchItem");
-}
+using namespace std;
 
-SearchItem::SearchItem(string category, string key, string value, JValue display, JValue extra)
-    : m_category(category)
-    , m_key(key)
-    , m_value(value)
-    , m_display(display)
-    , m_extra(extra)
-{
-    setClassName("SearchItem");
-}
+class Plugin {
+public:
+    Plugin() {}
+    virtual ~Plugin() {}
+
+    virtual SearchSetPtr getSearchSet() = 0;
+    virtual const string& getName() = 0;
+};
+
+typedef Plugin* plugin_init();
+
+extern "C" Plugin* create_plugin();
+
+#endif /* BASE_PLUGIN_H_ */

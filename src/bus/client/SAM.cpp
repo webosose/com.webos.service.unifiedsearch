@@ -17,12 +17,11 @@
 #include "SAM.h"
 
 #include "base/Database.h"
-#include "base/CategoryList.h"
+#include "base/SearchManager.h"
 #include "util/File.h"
 
-SAM::SAM() : AbsLunaClient("com.webos.applicationManager")
+SAM::SAM() : LunaClient("com.webos.applicationManager")
 {
-    setClassName("SAM");
 }
 
 SAM::~SAM()
@@ -31,9 +30,10 @@ SAM::~SAM()
 
 void SAM::onInitialzed()
 {
-    m_contentList = make_shared<AppContentsList>();
     m_applications = make_shared<Applications>();
-    CategoryList::getInstance().addCategory(m_applications);
+    m_searchSet = make_shared<SearchSet>("SAM", Database::getInstance());
+    m_searchSet->addCategory(m_applications);
+    SearchManager::getInstance()->addSearchSet(m_searchSet);
 }
 
 void SAM::onFinalized()
@@ -49,7 +49,7 @@ void SAM::onServerStatusChanged(bool isConnected)
         JValue requestPayload = pbnjson::Object();
         requestPayload.put("subscribe", true);
 
-        m_listAppsCall = UnifiedSearch::getInstance().callMultiReply(
+        m_listAppsCall = getMainHandle()->callMultiReply(
             method.c_str(),
             requestPayload.stringify().c_str(),
             onListApps,
@@ -64,11 +64,10 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
 {
     auto sam = static_cast<SAM*>(context);
     auto appInst = sam->m_applications;
-    auto contentList = sam->m_contentList;
 
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-    Logger::logSubscriptionResponse(sam->getClassName(), __FUNCTION__, response, subscriptionPayload);
+    Logger::logSubscriptionResponse("SAM", __FUNCTION__, response, subscriptionPayload);
 
     if (subscriptionPayload.isNull()) {
         return false;
@@ -91,36 +90,59 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
             string id, title;
             JValueUtil::getValue(lp, "id", id);
             JValueUtil::getValue(lp, "title", title);
-            auto appContent = contentList->find(id);
-            if (appContent) {
-                appContent->setCategoryName(title);
+            auto category = sam->m_searchSet->findCategory(id);
+            if (category) {
+                category->setCategoryName(title);
                 countUpdate++;
             } else {
-                if (contentList->add(lp)) {
+                if (sam->addAppContents(lp)) {
                     countAdd++;
                 }
             }
         }
-        Logger::info(sam->getClassName(), __FUNCTION__, Logger::format("Added: %d, Updated: %d", countAdd, countUpdate));
+        Logger::info("SAM", __FUNCTION__, Logger::format("Added: %d, Updated: %d", countAdd, countUpdate));
     } else if (JValueUtil::getValue(subscriptionPayload, "change", change)) {
         // Second~ (changed)
         JValue app = Object();
         if (JValueUtil::getValue(subscriptionPayload, "app", app)) {
             if (change == "added") {
                 appInst->addToDatabase(app);
-                contentList->add(app);
-                Logger::info(sam->getClassName(), __FUNCTION__, "Add a item");
+                sam->addAppContents(app);
+                Logger::info("SAM", __FUNCTION__, "Add a item");
             } else if (change == "removed") {
                 string id;
                 JValueUtil::getValue(app, "id", id);
                 appInst->removeFromDatabase(id);
-                contentList->remove(id);
-                Logger::info(sam->getClassName(), __FUNCTION__, "Remove a item");
+                sam->m_searchSet->removeCategory(id);
+                Logger::info("SAM", __FUNCTION__, "Remove a item");
             }
         }
     }
 
     return true;
+}
+
+bool SAM::addAppContents(JValue &app)
+{
+    string searchIndex, type, id, title;
+
+    // only create 'searchIndex' field exist
+    if (JValueUtil::getValue(app, "searchIndex", searchIndex) && !searchIndex.empty()) {
+        JValueUtil::getValue(app, "type", type);
+        JValueUtil::getValue(app, "id", id);
+        JValueUtil::getValue(app, "title", title);
+
+        if (type != "web") {
+            Logger::warning("SAM", __FUNCTION__, Logger::format("Currently, only support 'web' type. %s=%s", id.c_str(), type.c_str()));
+            return false;
+        }
+
+        auto appContent = make_shared<AppContents>(id, title, app);
+        m_searchSet->addCategory(appContent);
+        return true;
+    }
+
+    return false;
 }
 
 bool SAM::reloadAppsByLocaleChange()

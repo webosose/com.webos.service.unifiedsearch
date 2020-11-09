@@ -14,29 +14,37 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef INTERFACE_ISINGLETON_H_
-#define INTERFACE_ISINGLETON_H_
+#ifndef BASE_CORE_CATEGORY_H_
+#define BASE_CORE_CATEGORY_H_
 
-#include <iostream>
+#include <map>
+#include <string>
+#include <functional>
+#include <pbnjson.hpp>
+
+#include "Intent.h"
+#include "SearchItem.h"
 
 using namespace std;
+using namespace pbnjson;
 
-template <class T>
-class ISingleton {
+class Category {
 public:
-    virtual ~ISingleton() {};
+    Category(string id, string name = "");
+    virtual ~Category();
 
-    static shared_ptr<T> getInstance()
-    {
-        static shared_ptr<T> _instance;
-        if (!_instance) {
-            _instance.reset(new T());
-        }
-        return _instance;
-    }
+    void setCategoryName(string name) { m_name = name; }
+
+    const string& getCategoryId() { return m_id; }
+    const string& getCategoryName() { return m_name; }
+
+    virtual IntentPtr generateIntent(SearchItemPtr item) = 0;
 
 protected:
-    ISingleton() {};
+    string m_id;
+    string m_name;
 };
 
-#endif /* INTERFACE_ISINGLETON_H_ */
+typedef shared_ptr<Category> CategoryPtr;
+
+#endif /* BASE_CATEGORY_H_ */

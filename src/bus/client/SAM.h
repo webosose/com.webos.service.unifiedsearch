@@ -20,18 +20,22 @@
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
 
-#include "AbsLunaClient.h"
-#include "base/Category.h"
+#include "Category.h"
+#include "LunaClient.h"
+#include "SearchSet.h"
+
 #include "clients/AppContents.h"
 #include "clients/Applications.h"
+
 #include "interface/ISingleton.h"
-#include "util/Logger.h"
+#include "Logger.h"
+#include "util/JValueUtil.h"
 
 using namespace std;
 using namespace LS;
 using namespace pbnjson;
 
-class SAM : public AbsLunaClient
+class SAM : public LunaClient
           , public ISingleton<SAM> {
 friend class ISingleton<SAM>;
 public:
@@ -40,7 +44,7 @@ public:
     bool reloadAppsByLocaleChange();
 
 protected:
-    // AbsLunaClient
+    // LunaClient
     virtual void onInitialzed() override;
     virtual void onFinalized() override;
     virtual void onServerStatusChanged(bool isConnected) override;
@@ -50,10 +54,12 @@ private:
 
     SAM();
 
+    bool addAppContents(JValue &app);
+
     Call m_listAppsCall;
 
-    shared_ptr<AppContentsList> m_contentList;
-    shared_ptr<Applications> m_applications;
+    SearchSetPtr m_searchSet;
+    ApplicationsPtr m_applications;
 };
 
 #endif  // BUS_CLIENT_SAM_H_

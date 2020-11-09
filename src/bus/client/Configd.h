@@ -20,16 +20,16 @@
 #include <luna-service2/lunaservice.hpp>
 #include <pbnjson.hpp>
 
-#include "AbsLunaClient.h"
+#include "LunaClient.h"
 #include "interface/ISingleton.h"
-#include "util/Logger.h"
+#include "Logger.h"
 
 using namespace std;
 using namespace LS;
 using namespace pbnjson;
 
 class Configd : public ISingleton<Configd>,
-                public AbsLunaClient {
+                public LunaClient {
 friend class ISingleton<Configd>;
 public:
     virtual ~Configd();
@@ -40,7 +40,7 @@ public:
     }
 
 protected:
-    // AbsLunaClient
+    // LunaClient
     virtual void onInitialzed() override;
     virtual void onFinalized() override;
     virtual void onServerStatusChanged(bool isConnected) override;

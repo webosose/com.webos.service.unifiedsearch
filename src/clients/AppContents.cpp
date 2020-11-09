@@ -17,7 +17,7 @@
 #include "AppContents.h"
 
 #include "base/Database.h"
-#include "base/CategoryList.h"
+#include "base/SearchManager.h"
 #include "bus/client/SettingService.h"
 #include "util/File.h"
 #include "util/JValueUtil.h"
@@ -134,7 +134,7 @@ bool AppContents::createIndexes()
         SearchItemPtr sItem = make_shared<SearchItem>(getCategoryId(), key, searchValue, display, extra);
 
         // add to database
-        if (Database::getInstance().insert(sItem)) {
+        if (Database::getInstance()->insert(sItem)) {
             count++;
         }
     }
@@ -155,7 +155,7 @@ IntentPtr AppContents::generateIntent(SearchItemPtr item)
 
     // replace title object to string by choosing language
     if (JValueUtil::getValue(display, "title", title) && title.isObject()) {
-        string lang = SettingService::getInstance().language();
+        string lang = SettingService::getInstance()->language();
         if (!JValueUtil::getValue(title, lang, curTitle)) {
             JValueUtil::getValue(title, "en", curTitle); // fallback = en
         }
@@ -168,7 +168,7 @@ IntentPtr AppContents::generateIntent(SearchItemPtr item)
 
 bool AppContents::eraseCategory()
 {
-    Database::getInstance().remove(getCategoryId());
+    Database::getInstance()->remove(getCategoryId());
     return true;
 }
 
@@ -230,50 +230,4 @@ map<string, map<string, string>> AppContents::getLabels()
     }
 
     return allLabels;
-}
-
-bool AppContentsList::add(JValue &app)
-{
-    string searchIndex, type, id, title;
-
-    // only create 'searchIndex' field exist
-    if (JValueUtil::getValue(app, "searchIndex", searchIndex) && !searchIndex.empty()) {
-        JValueUtil::getValue(app, "type", type);
-        JValueUtil::getValue(app, "id", id);
-        JValueUtil::getValue(app, "title", title);
-
-        if (type != "web") {
-            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Currently, only support 'web' type. %s=%s", id.c_str(), type.c_str()));
-            return false;
-        }
-
-        auto appContent = make_shared<AppContents>(id, title, app);
-        CategoryList::getInstance().addCategory(appContent);
-        m_appContentsMap.insert({id, appContent});
-        return true;
-    }
-
-    return false;
-}
-
-bool AppContentsList::remove(string &id)
-{
-    auto it = m_appContentsMap.find(id);
-    if (it == m_appContentsMap.end()) {
-        return false;
-    }
-
-    it->second->eraseCategory();
-    m_appContentsMap.erase(it);
-    CategoryList::getInstance().removeCategory(it->second->getCategoryId());
-    return true;
-}
-
-AppContentsPtr AppContentsList::find(string &id)
-{
-    auto appContent = m_appContentsMap.find(id);
-    if (appContent != m_appContentsMap.end()) {
-        return appContent->second;
-    }
-    return nullptr;
 }

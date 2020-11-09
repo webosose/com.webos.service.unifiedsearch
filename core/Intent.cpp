@@ -14,17 +14,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "base/Intent.h"
-
-#include "conf/ConfFile.h"
-#include "util/File.h"
-#include "util/Logger.h"
+#include "Intent.h"
 
 Intent::Intent(string category, JValue base)
     : m_category(category)
     , m_base(base)
 {
-    setClassName("Intent");
 }
 
 Intent::~Intent()

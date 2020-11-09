@@ -19,7 +19,7 @@
 #include <glib.h>
 
 #include "base/Database.h"
-#include "base/CategoryList.h"
+#include "base/SearchManager.h"
 #include "bus/service/UnifiedSearch.h"
 #include "bus/client/Configd.h"
 #include "bus/client/SAM.h"
@@ -43,21 +43,23 @@ MainDaemon::~MainDaemon()
 
 void MainDaemon::initialize()
 {
-    SettingService::getInstance().initialize();
-    ConfFile::getInstance().initialize();
-    Database::getInstance().initialize();
-    CategoryList::getInstance().initialize();
-    UnifiedSearch::getInstance().initialize(m_mainLoop);
-    SAM::getInstance().initialize();
+    ConfFile::getInstance()->initialize();
+    Database::getInstance()->initialize();
+    UnifiedSearch::getInstance()->initialize(m_mainLoop);
+
+    SettingService::getInstance()->initialize();
+    SAM::getInstance()->initialize();
+    SearchManager::getInstance()->initialize();
 }
 
 void MainDaemon::finalize()
 {
-    SAM::getInstance().finalize();
-    CategoryList::getInstance().finalize();
-    Database::getInstance().finalize();
-    Configd::getInstance().finalize();
-    SettingService::getInstance().finalize();
+    SearchManager::getInstance()->finalize();
+    SAM::getInstance()->finalize();
+    SettingService::getInstance()->finalize();
+    
+    Database::getInstance()->finalize();
+    ConfFile::getInstance()->finalize();
 }
 
 void MainDaemon::start()

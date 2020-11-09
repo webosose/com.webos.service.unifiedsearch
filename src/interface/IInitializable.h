@@ -21,7 +21,7 @@
 #include <glib.h>
 
 #include "IClassName.h"
-#include "util/Logger.h"
+#include "Logger.h"
 
 using namespace std;
 

@@ -28,7 +28,7 @@
 #include "interface/ISingleton.h"
 #include "util/File.h"
 #include "util/JValueUtil.h"
-#include "util/Logger.h"
+#include "Logger.h"
 #include "util/LinuxProcess.h"
 
 class ConfFile : public ISingleton<ConfFile>,

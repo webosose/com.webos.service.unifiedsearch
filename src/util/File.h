@@ -40,6 +40,8 @@ public:
     static bool createFile(const string& path);
     static bool removeDir(const string& path);
 
+    static vector<string> readDirectory(const string& path, const string& filter = "");
+
     static bool chownDir(const string& path, const string& userName);
 
     static string join(const string& a, const string& b);

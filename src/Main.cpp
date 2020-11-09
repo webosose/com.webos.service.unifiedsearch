@@ -22,7 +22,7 @@
 #include <gio/gio.h>
 
 #include "MainDaemon.h"
-#include "util/Logger.h"
+#include "Logger.h"
 #include "util/File.h"
 
 static const char* CLASS_NAME = "Main";
@@ -57,7 +57,7 @@ Done:
         Logger::warning(CLASS_NAME, __FUNCTION__, "Try to terminate search service process");
     }
 
-    MainDaemon::getInstance().stop();
+    MainDaemon::getInstance()->stop();
 }
 
 int main(int argc, char **argv)
@@ -81,9 +81,9 @@ int main(int argc, char **argv)
     sigaction(SIGABRT, &act, NULL);
     sigaction(SIGFPE, &act, NULL);
 
-    MainDaemon::getInstance().initialize();
-    MainDaemon::getInstance().start();
-    MainDaemon::getInstance().finalize();
+    MainDaemon::getInstance()->initialize();
+    MainDaemon::getInstance()->start();
+    MainDaemon::getInstance()->finalize();
 
     return EXIT_SUCCESS;
 }

@@ -14,20 +14,31 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "base/Category.h"
-#include "base/CategoryList.h"
+#ifndef BASE_CORE_DATASOURCE_H_
+#define BASE_CORE_DATASOURCE_H_
 
-#include "conf/ConfFile.h"
-#include "util/File.h"
-#include "util/Logger.h"
+#include <string>
+#include <vector>
+#include <functional>
 
-Category::Category(string id, string name)
-    : m_id(id)
-    , m_name(name.empty() ? id : name)
-{
-}
+#include "SearchItem.h"
 
-Category::~Category()
-{
+using namespace std;
 
-}
+class DataSource {
+public:
+    DataSource(string id) : m_id(id) {}
+    virtual ~DataSource() {}
+
+    string getId() { return m_id; }
+
+    using searchCB = function<void(string, vector<SearchItemPtr>)>;
+    virtual bool search(string searchKey, searchCB callback) = 0;
+
+private:
+    string m_id;
+};
+
+typedef shared_ptr<DataSource> DataSourcePtr;
+
+#endif /* BASE_DATASOURCE_H_ */

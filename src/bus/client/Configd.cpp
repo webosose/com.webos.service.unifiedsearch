@@ -17,10 +17,8 @@
 #include "Configd.h"
 
 Configd::Configd()
-    : AbsLunaClient("com.webos.service.config")
+    : LunaClient("com.webos.service.config")
 {
-    setClassName("Configd");
-
     configNames = pbnjson::Array();
 /*
     configNames.append("system.deviceSet");
@@ -53,7 +51,7 @@ void Configd::onServerStatusChanged(bool isConnected)
         requestPayload.put("subscribe", true);
         requestPayload.put("configNames", configNames);
 
-        m_getConfigsCall = UnifiedSearch::getInstance().callMultiReply(
+        m_getConfigsCall = getMainHandle()->callMultiReply(
             method.c_str(),
             requestPayload.stringify().c_str(),
             onGetConfigs,
@@ -68,7 +66,7 @@ bool Configd::onGetConfigs(LSHandle* sh, LSMessage* message, void* context)
 {
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-    Logger::logSubscriptionResponse(getInstance().getClassName(), __FUNCTION__, response, subscriptionPayload);
+    Logger::logSubscriptionResponse("Configd", __FUNCTION__, response, subscriptionPayload);
 
     if (subscriptionPayload.isNull()) {
         return false;
@@ -76,12 +74,12 @@ bool Configd::onGetConfigs(LSHandle* sh, LSMessage* message, void* context)
 /*
     JValue deviceSet = Object();
     if (JValueUtil::getValue(subscriptionPayload, "configs", "system.deviceSet", deviceSet)) {
-        Configd::getInstance().m_deviceSet = deviceSet;
+        Configd::getInstance()->m_deviceSet = deviceSet;
     }
 
     JValue displaySet = Object();
     if (JValueUtil::getValue(subscriptionPayload, "configs", "system.displaySet", displaySet)) {
-        Configd::getInstance().EventGetDeviceSet(Configd::getInstance().m_deviceSet, displaySet); // connect to ConfFile::setDeviceSet
+        Configd::getInstance()->EventGetDeviceSet(Configd::getInstance()->m_deviceSet, displaySet); // connect to ConfFile::setDeviceSet
     }
 */
     return true;

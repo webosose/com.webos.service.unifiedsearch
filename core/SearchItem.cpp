@@ -14,29 +14,17 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef INTERFACE_ISINGLETON_H_
-#define INTERFACE_ISINGLETON_H_
+#include "SearchItem.h"
 
-#include <iostream>
+SearchItem::SearchItem(string category, string key, string value, JValue display)
+    : m_category(category)
+    , m_key(key)
+    , m_value(value)
+    , m_display(display) {}
 
-using namespace std;
-
-template <class T>
-class ISingleton {
-public:
-    virtual ~ISingleton() {};
-
-    static shared_ptr<T> getInstance()
-    {
-        static shared_ptr<T> _instance;
-        if (!_instance) {
-            _instance.reset(new T());
-        }
-        return _instance;
-    }
-
-protected:
-    ISingleton() {};
-};
-
-#endif /* INTERFACE_ISINGLETON_H_ */
+SearchItem::SearchItem(string category, string key, string value, JValue display, JValue extra)
+    : m_category(category)
+    , m_key(key)
+    , m_value(value)
+    , m_display(display)
+    , m_extra(extra) {}

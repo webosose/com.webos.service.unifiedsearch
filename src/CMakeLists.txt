@@ -23,22 +23,6 @@ pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${GLIB2_CFLAGS_OTHER})
 
-pkg_check_modules(LUNASERVICE2 luna-service2)
-include_directories(${LUNASERVICE2_INCLUDE_DIRS})
-webos_add_compiler_flags(ALL ${LUNASERVICE2_CFLAGS_OTHER})
-
-pkg_check_modules(LUNASERVICE2CPP luna-service2++)
-include_directories(${LUNASERVICE2CPP_INCLUDE_DIRS})
-webos_add_compiler_flags(ALL ${LUNASERVICE2CPP_CFLAGS_OTHER})
-
-pkg_check_modules(PBNJSON_C REQUIRED pbnjson_c)
-include_directories(${PBNJSON_C_INCLUDE_DIRS})
-webos_add_compiler_flags(ALL ${PBNJSON_C_CFLAGS_OTHER})
-
-pkg_check_modules(PBNJSON_CPP REQUIRED pbnjson_cpp)
-include_directories(${PBNJSON_CPP_INCLUDE_DIRS})
-webos_add_compiler_flags(ALL ${PBNJSON_CPP_CFLAGS_OTHER})
-
 pkg_check_modules(PROCPS REQUIRED libprocps)
 include_directories(PROCPS_INCLUDE_DIRS)
 webos_add_compiler_flags(ALL ${PROCPS_CFLAGS})
@@ -55,20 +39,18 @@ set(BIN_NAME unifiedsearch)
 file(GLOB_RECURSE SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(../core)
 include_directories(${PROJECT_BINARY_DIR}/Configured/src)
 add_executable(${BIN_NAME} ${SRC_CPP})
 
 set(LIBS
     ${GLIB2_LDFLAGS}
-    ${LUNASERVICE2_LDFLAGS}
-    ${LUNASERVICE2CPP_LDFLAGS}
-    ${PBNJSON_C_LDFLAGS}
-    ${PBNJSON_CPP_LDFLAGS}
     ${PROCPS_LDFLAGS}
     ${SQLITE3_LDFLAGS}
     -pthread
+    -ldl
 )
-target_link_libraries(${BIN_NAME} ${LIBS})
+target_link_libraries(${BIN_NAME} searchcore ${LIBS})
 
 # Install
 install(TARGETS ${BIN_NAME} DESTINATION ${WEBOS_INSTALL_SBINDIR})

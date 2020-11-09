@@ -16,6 +16,7 @@
 
 #include "File.h"
 
+#include <dirent.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -127,6 +128,24 @@ bool File::removeDir(const string& path)
     int rc = ::system(command.c_str());
     return WIFEXITED(rc) && WEXITSTATUS(rc) == 0;
 }
+
+vector<string> File::readDirectory(const string& path, const string& filter)
+{
+    vector<string> files;
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir (path.c_str())) != NULL) {
+        while ((ent = readdir (dir)) != NULL) {
+            string dirName = ent->d_name;
+            if (filter.empty() || (dirName.find(filter) != string::npos)) {
+                files.push_back(dirName);
+            }
+        }
+        closedir (dir);
+    }
+    return files;
+}
+
 
 bool File::chownDir(const string& path, const string& userName)
 {
