@@ -18,27 +18,34 @@
 #define INTERFACE_ICLASSNAME_H_
 
 #include <string>
+#include <cstdlib>
+#include <cxxabi.h>
 
 using namespace std;
 
+template<class T>
 class IClassName {
 public:
-    IClassName() : m_name("Unknown") {}
-    IClassName(const char *name) : m_name(name) {}
-    virtual ~IClassName() {}
-
-    const string& getClassName() const
-    {
-        return m_name;
+    IClassName() {
+        int status;
+        s_name = typeid(T).name();
+        char *demangled_name = abi::__cxa_demangle(s_name.c_str(), NULL, NULL, &status);
+        if (status == 0) {
+            s_name = demangled_name;
+            std::free(demangled_name);
+        }
     }
 
-    void setClassName(string name)
+    static const string& getClassName()
     {
-        m_name = name;
+        return s_name;
     }
 
 private:
-    string m_name;
+    static string s_name;
 };
+
+template<class T>
+string IClassName<T>::s_name = "";
 
 #endif /* INTERFACE_ICLASSNAME_H_ */

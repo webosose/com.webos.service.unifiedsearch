@@ -32,7 +32,7 @@
 using namespace std;
 
 class Database : public DataSource
-               , public IInitializable
+               , public IInitializable<Database>
                , public ISingleton<Database> {
 friend class ISingleton<Database>;
 public:

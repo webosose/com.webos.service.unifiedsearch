@@ -28,6 +28,7 @@
 #include "clients/Applications.h"
 
 #include "interface/ISingleton.h"
+#include "interface/IClassName.h"
 #include "Logger.h"
 #include "util/JValueUtil.h"
 
@@ -36,6 +37,7 @@ using namespace LS;
 using namespace pbnjson;
 
 class SAM : public LunaClient
+          , public IClassName<SAM>
           , public ISingleton<SAM> {
 friend class ISingleton<SAM>;
 public:

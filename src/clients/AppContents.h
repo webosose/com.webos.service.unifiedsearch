@@ -31,7 +31,7 @@ using namespace LS;
 using namespace pbnjson;
 
 class AppContents : public Category
-                  , public IClassName {
+                  , public IClassName<AppContents> {
 public:
     AppContents(string id, string name, JValue &app);
     virtual ~AppContents();

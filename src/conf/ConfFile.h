@@ -32,7 +32,7 @@
 #include "util/LinuxProcess.h"
 
 class ConfFile : public ISingleton<ConfFile>,
-                 public IInitializable {
+                 public IInitializable<ConfFile> {
 friend class ISingleton<ConfFile>;
 public:
     virtual ~ConfFile();

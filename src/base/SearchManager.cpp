@@ -25,15 +25,6 @@
 #include "util/File.h"
 #include "Logger.h"
 
-SearchManager::SearchManager()
-{
-    setClassName("SearchManager");
-}
-
-SearchManager::~SearchManager()
-{
-}
-
 bool SearchManager::onInitialization()
 {
     loadPlugins();

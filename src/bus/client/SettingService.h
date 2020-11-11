@@ -24,13 +24,15 @@
 #include "LunaClient.h"
 
 #include "interface/ISingleton.h"
+#include "interface/IClassName.h"
 #include "Logger.h"
 
 using namespace LS;
 using namespace pbnjson;
 
-class SettingService : public ISingleton<SettingService>,
-                       public LunaClient {
+class SettingService : public ISingleton<SettingService>
+                     , public IClassName<SettingService>
+                     , public LunaClient {
 friend class ISingleton<SettingService>;
 public:
     virtual ~SettingService();

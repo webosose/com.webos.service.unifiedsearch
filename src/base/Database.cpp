@@ -35,7 +35,6 @@
 
 Database::Database() : DataSource("sqlite3")
 {
-    setClassName("Database");
 }
 
 Database::~Database()

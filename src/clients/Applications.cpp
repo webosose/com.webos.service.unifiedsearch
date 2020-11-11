@@ -23,8 +23,6 @@
 
 Applications::Applications() : Category("Applications")
 {
-    setClassName("Applications");
-
     // remove old items first
     // TODO: it's better to update(replace) only updated one - needs better logic
     Database::getInstance()->remove(getCategoryId());

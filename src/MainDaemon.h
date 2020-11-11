@@ -27,7 +27,7 @@ using namespace std;
 using namespace pbnjson;
 
 class MainDaemon : public ISingleton<MainDaemon>,
-                   public IClassName {
+                   public IClassName<MainDaemon> {
 friend class ISingleton<MainDaemon>;
 public:
     virtual ~MainDaemon();

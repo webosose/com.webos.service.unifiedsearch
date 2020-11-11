@@ -30,7 +30,7 @@ using namespace pbnjson;
 
 class UnifiedSearch: public LS::Handle,
               public ISingleton<UnifiedSearch>,
-              public IInitializable {
+              public IInitializable<UnifiedSearch> {
 friend class ISingleton<UnifiedSearch>;
 public:
     virtual ~UnifiedSearch();

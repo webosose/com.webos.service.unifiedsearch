@@ -30,7 +30,7 @@ using namespace LS;
 using namespace pbnjson;
 
 class Applications : public Category
-                   , public IClassName  {
+                   , public IClassName<Applications>  {
 public:
     Applications();
     virtual ~Applications();

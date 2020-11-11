@@ -20,7 +20,6 @@
 ConfFile::ConfFile()
     : m_isRespawned(false)
 {
-    setClassName("ConfFile");
 }
 
 ConfFile::~ConfFile()

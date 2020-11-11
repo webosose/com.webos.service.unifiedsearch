@@ -54,7 +54,7 @@ void SettingService::onServerStatusChanged(bool isConnected)
             method.c_str(),
             requestPayload.stringify().c_str(),
             onLocaleChanged,
-            nullptr
+            this
         );
     } else {
         m_getSystemSettingsCall.cancel();
@@ -65,14 +65,14 @@ bool SettingService::onLocaleChanged(LSHandle* sh, LSMessage* message, void* con
 {
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-    Logger::logSubscriptionResponse("SettingService", __FUNCTION__, response, subscriptionPayload);
+    Logger::logSubscriptionResponse(getClassName(), __FUNCTION__, response, subscriptionPayload);
 
     if (subscriptionPayload.isNull())
         return true;
 
     bool returnValue = true;
     if (!JValueUtil::getValue(subscriptionPayload, "returnValue", returnValue) || !returnValue) {
-        Logger::warning("SettingService", __FUNCTION__, "received invaild message from settings service");
+        Logger::warning(getClassName(), __FUNCTION__, "received invaild message from settings service");
         return true;
     }
 
@@ -80,7 +80,7 @@ bool SettingService::onLocaleChanged(LSHandle* sh, LSMessage* message, void* con
         return true;
     }
 
-    SettingService::getInstance()->updateLocaleInfo(subscriptionPayload["settings"]);
+    static_cast<SettingService*>(context)->updateLocaleInfo(subscriptionPayload["settings"]);
     return true;
 }
 

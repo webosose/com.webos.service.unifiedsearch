@@ -25,24 +25,25 @@
 
 using namespace std;
 
-class IInitializable : public IClassName {
+template<class T>
+class IInitializable : public IClassName<T> {
 public:
     virtual ~IInitializable() {};
 
     virtual bool initialize(GMainLoop* mainloop = nullptr) final
     {
-        Logger::info(getClassName(), __FUNCTION__, "Start initialization");
+        Logger::info(IClassName<T>::getClassName(), __FUNCTION__, "Start initialization");
         m_mainloop = mainloop;
         m_isInitalized = onInitialization();
-        Logger::info(getClassName(), __FUNCTION__, "End initialization");
+        Logger::info(IClassName<T>::getClassName(), __FUNCTION__, "End initialization");
         return m_isInitalized;
     }
 
     virtual bool finalize() final
     {
-        Logger::info(getClassName(), __FUNCTION__, "Start finalization");
+        Logger::info(IClassName<T>::getClassName(), __FUNCTION__, "Start finalization");
         m_isFinalized = onFinalization();
-        Logger::info(getClassName(), __FUNCTION__, "End finalization");
+        Logger::info(IClassName<T>::getClassName(), __FUNCTION__, "End finalization");
         return m_isFinalized;
     }
 
@@ -75,7 +76,7 @@ protected:
 
     void ready()
     {
-        Logger::info(getClassName(), __FUNCTION__, "Ready");
+        Logger::info(IClassName<T>::getClassName(), __FUNCTION__, "Ready");
         m_isReady = true;
     }
 

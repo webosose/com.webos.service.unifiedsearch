@@ -29,8 +29,6 @@
 UnifiedSearch::UnifiedSearch()
     : LS::Handle(LS::registerService("com.webos.service.unifiedsearch"))
 {
-    setClassName("UnifiedSearch");
-
     LS_CATEGORY_BEGIN(UnifiedSearch, "/")
         LS_CATEGORY_METHOD(search)
     LS_CATEGORY_END

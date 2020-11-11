@@ -26,8 +26,6 @@ AppContents::AppContents(string id, string name, JValue &app)
     : Category(id, name)
     , m_appInfo(app)
 {
-    setClassName("AppContents");
-
     // FIXME - no need to re-index installted app
     eraseCategory();
 

@@ -33,11 +33,11 @@
 
 using namespace std;
 
-class SearchManager : public IInitializable
-                   , public ISingleton<SearchManager> {
+class SearchManager : public IInitializable<SearchManager>
+                    , public ISingleton<SearchManager> {
 friend class ISingleton<SearchManager>;
 public:
-    virtual ~SearchManager();
+    virtual ~SearchManager() {}
 
     bool onInitialization();
     bool onFinalization();
@@ -50,7 +50,7 @@ public:
     bool search(string searchKey, resultCB cb);
 
 private:
-    SearchManager();
+    SearchManager() {}
 
     void loadPlugins();
 

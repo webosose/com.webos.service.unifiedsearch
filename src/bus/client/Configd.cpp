@@ -55,7 +55,7 @@ void Configd::onServerStatusChanged(bool isConnected)
             method.c_str(),
             requestPayload.stringify().c_str(),
             onGetConfigs,
-            nullptr
+            this
         );
     } else {
         m_getConfigsCall.cancel();
@@ -66,7 +66,7 @@ bool Configd::onGetConfigs(LSHandle* sh, LSMessage* message, void* context)
 {
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-    Logger::logSubscriptionResponse("Configd", __FUNCTION__, response, subscriptionPayload);
+    Logger::logSubscriptionResponse(getClassName(), __FUNCTION__, response, subscriptionPayload);
 
     if (subscriptionPayload.isNull()) {
         return false;

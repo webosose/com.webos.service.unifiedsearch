@@ -22,14 +22,16 @@
 
 #include "LunaClient.h"
 #include "interface/ISingleton.h"
+#include "interface/IClassName.h"
 #include "Logger.h"
 
 using namespace std;
 using namespace LS;
 using namespace pbnjson;
 
-class Configd : public ISingleton<Configd>,
-                public LunaClient {
+class Configd : public ISingleton<Configd>
+              , public IClassName<Configd>
+              , public LunaClient {
 friend class ISingleton<Configd>;
 public:
     virtual ~Configd();

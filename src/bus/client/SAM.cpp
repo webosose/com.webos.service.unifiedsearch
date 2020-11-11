@@ -31,7 +31,7 @@ SAM::~SAM()
 void SAM::onInitialzed()
 {
     m_applications = make_shared<Applications>();
-    m_searchSet = make_shared<SearchSet>("SAM", Database::getInstance());
+    m_searchSet = make_shared<SearchSet>(getClassName(), Database::getInstance());
     m_searchSet->addCategory(m_applications);
     SearchManager::getInstance()->addSearchSet(m_searchSet);
 }
@@ -67,7 +67,7 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
 
     Message response(message);
     JValue subscriptionPayload = JDomParser::fromString(response.getPayload());
-    Logger::logSubscriptionResponse("SAM", __FUNCTION__, response, subscriptionPayload);
+    Logger::logSubscriptionResponse(getClassName(), __FUNCTION__, response, subscriptionPayload);
 
     if (subscriptionPayload.isNull()) {
         return false;
@@ -100,7 +100,7 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
                 }
             }
         }
-        Logger::info("SAM", __FUNCTION__, Logger::format("Added: %d, Updated: %d", countAdd, countUpdate));
+        Logger::info(getClassName(), __FUNCTION__, Logger::format("Added: %d, Updated: %d", countAdd, countUpdate));
     } else if (JValueUtil::getValue(subscriptionPayload, "change", change)) {
         // Second~ (changed)
         JValue app = Object();
@@ -108,13 +108,13 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
             if (change == "added") {
                 appInst->addToDatabase(app);
                 sam->addAppContents(app);
-                Logger::info("SAM", __FUNCTION__, "Add a item");
+                Logger::info(getClassName(), __FUNCTION__, "Add a item");
             } else if (change == "removed") {
                 string id;
                 JValueUtil::getValue(app, "id", id);
                 appInst->removeFromDatabase(id);
                 sam->m_searchSet->removeCategory(id);
-                Logger::info("SAM", __FUNCTION__, "Remove a item");
+                Logger::info(getClassName(), __FUNCTION__, "Remove a item");
             }
         }
     }
@@ -133,7 +133,7 @@ bool SAM::addAppContents(JValue &app)
         JValueUtil::getValue(app, "title", title);
 
         if (type != "web") {
-            Logger::warning("SAM", __FUNCTION__, Logger::format("Currently, only support 'web' type. %s=%s", id.c_str(), type.c_str()));
+            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Currently, only support 'web' type. %s=%s", id.c_str(), type.c_str()));
             return false;
         }
 

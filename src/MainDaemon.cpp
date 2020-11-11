@@ -30,7 +30,6 @@
 
 MainDaemon::MainDaemon()
 {
-    setClassName("MainDaemon");
     m_mainLoop = g_main_loop_new(NULL, FALSE);
 }
 
