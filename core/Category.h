@@ -34,15 +34,21 @@ public:
     virtual ~Category();
 
     void setCategoryName(string name) { m_name = name; }
+    void setRank(int rank) { m_rank = rank; }
+    void setEnabled(bool enabled) { m_enabled = enabled; }
 
     const string& getCategoryId() { return m_id; }
     const string& getCategoryName() { return m_name; }
+    const int getRank() { return m_rank; }
+    const bool isEnabled() { return m_enabled; }
 
-    virtual IntentPtr generateIntent(SearchItemPtr item) = 0;
+    virtual IntentPtr generateIntent(SearchItemPtr item) { return nullptr; };
 
 protected:
     string m_id;
     string m_name;
+    int m_rank;
+    bool m_enabled;
 };
 
 typedef shared_ptr<Category> CategoryPtr;

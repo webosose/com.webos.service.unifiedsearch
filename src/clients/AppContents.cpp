@@ -132,7 +132,7 @@ bool AppContents::createIndexes()
         SearchItemPtr sItem = make_shared<SearchItem>(getCategoryId(), key, searchValue, display, extra);
 
         // add to database
-        if (Database::getInstance()->insert(sItem)) {
+        if (Database::getInstance()->insertItem(sItem)) {
             count++;
         }
     }
@@ -166,7 +166,7 @@ IntentPtr AppContents::generateIntent(SearchItemPtr item)
 
 bool AppContents::eraseCategory()
 {
-    Database::getInstance()->remove(getCategoryId());
+    Database::getInstance()->removeItem(getCategoryId());
     return true;
 }
 

@@ -34,7 +34,8 @@
 using namespace std;
 
 class SearchManager : public IInitializable<SearchManager>
-                    , public ISingleton<SearchManager> {
+                    , public ISingleton<SearchManager>
+                    , public SearchSetClient {
 friend class ISingleton<SearchManager>;
 public:
     virtual ~SearchManager() {}
@@ -45,9 +46,13 @@ public:
     bool addSearchSet(SearchSetPtr category);
     bool removeSearchSet(string id);
     SearchSetPtr findSearchSet(string id);
+    CategoryPtr findCategory(string id);
 
     using resultCB = function<void(map<string, vector<IntentPtr>>)>;
     bool search(string searchKey, resultCB cb);
+
+    void categoryAdded(CategoryPtr category) override;
+    void categoryRemoved(string cateId) override;
 
 private:
     SearchManager() {}
@@ -59,7 +64,7 @@ private:
         SearchTask(string key, resultCB cb);
         ~SearchTask();
 
-        vector<IntentPtr>& get(string &category);
+        vector<IntentPtr>& get(const string &category);
 
     private:
         string m_key;

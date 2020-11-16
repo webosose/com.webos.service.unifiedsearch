@@ -25,9 +25,15 @@
 
 using namespace std;
 
+class SearchSetClient {
+public:
+    virtual void categoryAdded(CategoryPtr category) = 0;
+    virtual void categoryRemoved(string cateId) = 0;
+};
+
 class SearchSet {
 public:
-    SearchSet(string id, DataSourcePtr source) : m_id(id), m_source(source) {}
+    SearchSet(string id, DataSourcePtr source) : m_id(id), m_source(source), m_client(nullptr) {}
 
     const string& getId() { return m_id; }
     DataSourcePtr getDataSource() { return m_source; }
@@ -37,10 +43,14 @@ public:
     bool removeCategory(string id);
     CategoryPtr findCategory(string id);
 
+    void setClient(SearchSetClient* client) { m_client = client; }
+
 private:
     string m_id;
     DataSourcePtr m_source;
     map<string, CategoryPtr> m_categories;
+
+    SearchSetClient* m_client;
 };
 
 typedef shared_ptr<SearchSet> SearchSetPtr;

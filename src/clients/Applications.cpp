@@ -25,7 +25,7 @@ Applications::Applications() : Category("Applications")
 {
     // remove old items first
     // TODO: it's better to update(replace) only updated one - needs better logic
-    Database::getInstance()->remove(getCategoryId());
+    Database::getInstance()->removeItem(getCategoryId());
 }
 
 Applications::~Applications()
@@ -52,7 +52,7 @@ bool Applications::addToDatabase(JValue &app)
 
     // create search item and insert
     SearchItemPtr item = make_shared<SearchItem>(getCategoryId(), id, title, display);
-    return Database::getInstance()->insert(item);
+    return Database::getInstance()->insertItem(item);
 }
 
 IntentPtr Applications::generateIntent(SearchItemPtr item)
@@ -76,5 +76,5 @@ IntentPtr Applications::generateIntent(SearchItemPtr item)
 
 bool Applications::removeFromDatabase(string id)
 {
-    return Database::getInstance()->remove(getCategoryId(), id);
+    return Database::getInstance()->removeItem(getCategoryId(), id);
 }

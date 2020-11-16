@@ -49,21 +49,41 @@ bool SearchManager::addSearchSet(SearchSetPtr searchSet)
         return false;
     }
 
+    searchSet->setClient(this);
     m_searchSets.insert({id, searchSet});
     Logger::info(getClassName(), __FUNCTION__, Logger::format("SearchSet added: %s", id.c_str()));
+
+    // register categories to DB
+    auto categories = searchSet->getCategories();
+    for (auto it : categories) {
+        Database::getInstance()->adjustOrCreateCategory(it.second);
+    }
+
     return true;
 }
 
 bool SearchManager::removeSearchSet(string id)
 {
-    if (m_searchSets.find(id) == m_searchSets.end()) {
+    auto it = m_searchSets.find(id);
+    if (it == m_searchSets.end()) {
         Logger::warning(getClassName(), __FUNCTION__, Logger::format("Not exist searchSet: %s", id.c_str()));
         return false;
     }
 
     m_searchSets.erase(id);
+    it->second->setClient(nullptr);
     Logger::info(getClassName(), __FUNCTION__, Logger::format("SearchSet removed: %s", id.c_str()));
     return true;
+}
+
+void SearchManager::categoryAdded(CategoryPtr category)
+{
+    Database::getInstance()->adjustOrCreateCategory(category);
+}
+
+void SearchManager::categoryRemoved(string cateId)
+{
+    Database::getInstance()->removeCategory(cateId);
 }
 
 SearchSetPtr SearchManager::findSearchSet(string id)
@@ -75,6 +95,19 @@ SearchSetPtr SearchManager::findSearchSet(string id)
     return nullptr;
 }
 
+CategoryPtr SearchManager::findCategory(string id)
+{
+    for (auto it : m_searchSets) {
+        auto searchSet = it.second;
+        auto category = searchSet->findCategory(id);
+        if (category) {
+            return category;
+        }
+    }
+    return nullptr;
+}
+
+
 bool SearchManager::search(string searchKey, resultCB callback)
 {
     shared_ptr<SearchTask> task = make_shared<SearchTask>(searchKey, callback);
@@ -84,6 +117,21 @@ bool SearchManager::search(string searchKey, resultCB callback)
         auto id = it.first;
         auto searchSet = it.second;
         auto source = searchSet->getDataSource();
+
+        // check searchSet's categories are enabled, it's all disabled, don't search the source.
+        bool enabled = false;
+        for (auto it : searchSet->getCategories()) {
+            if (it.second->isEnabled()) {
+                enabled = true;
+                break;
+            }
+        }
+        if (!enabled) {
+            Logger::info(getClassName(), __FUNCTION__, Logger::format("SearchSet '%s' is disabled totally.", id.c_str()));
+            continue;
+        }
+
+        // try to search
         source->search(searchKey, [this, task, searchSet] (string sourceId, vector<SearchItemPtr> items) {
             // for each items
             for (auto item : items) {
@@ -93,14 +141,16 @@ bool SearchManager::search(string searchKey, resultCB callback)
                     Logger::warning(getClassName(), __FUNCTION__, Logger::format("Ignore '%s': There is no %s category.",
                         item->getKey().c_str(),
                         cateId.c_str()));
+                    continue;
+                } else if (!category->isEnabled()) {
+                    continue;
                 }
 
                 // convert to intent and add to list
-                auto cateName = category->getCategoryName();
                 auto intent = category->generateIntent(item);
-                task->get(cateName).push_back(intent);
+                task->get(cateId).push_back(intent);
 
-                Logger::debug(getClassName(), __FUNCTION__, Logger::format("Item: %s, %s", cateName.c_str(), item->getKey().c_str()));
+                Logger::debug(getClassName(), __FUNCTION__, Logger::format("Item: %s, %s", cateId.c_str(), item->getKey().c_str()));
             }
         });
     }
@@ -123,7 +173,7 @@ SearchManager::SearchTask::~SearchTask()
     Logger::debug("SearchManager", __FUNCTION__, "Search task ended");
 }
 
-vector<IntentPtr>& SearchManager::SearchTask::get(string &category)
+vector<IntentPtr>& SearchManager::SearchTask::get(const string &category)
 {
     if (m_intents.find(category) == m_intents.end()) {
         m_intents.insert({category, vector<IntentPtr>()});
@@ -134,11 +184,10 @@ vector<IntentPtr>& SearchManager::SearchTask::get(string &category)
 
 void SearchManager::loadPlugins()
 {
-    string plugin_basedir = "/usr/lib/plugins/unifiedsearch";
-    auto files = File::readDirectory(plugin_basedir, ".so");
+    auto files = File::readDirectory(PATH_PLUGIN, ".so");
     char *error;
     for (auto file : files) {
-        void *handle = dlopen(File::join(plugin_basedir, file).c_str(), RTLD_LAZY);
+        void *handle = dlopen(File::join(PATH_PLUGIN, file).c_str(), RTLD_LAZY);
         if (!handle) {
             Logger::warning(getClassName(), __FUNCTION__, Logger::format("Failed to load: %s", file.c_str()));
             continue;

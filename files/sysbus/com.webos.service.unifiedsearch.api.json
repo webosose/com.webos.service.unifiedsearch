@@ -1,5 +1,9 @@
 {
-  "search": [
-      "com.webos.service.unifiedsearch/search"
-  ]
+    "search": [
+        "com.webos.service.unifiedsearch/search",
+        "com.webos.service.unifiedsearch/getCategories"
+    ],
+    "search.internal": [
+        "com.webos.service.unifiedsearch/setCategoryInfo"
+    ]
 }

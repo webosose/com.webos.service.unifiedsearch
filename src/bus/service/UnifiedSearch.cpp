@@ -21,6 +21,7 @@
 #include <vector>
 #include <thread>
 
+#include "base/Database.h"
 #include "base/SearchManager.h"
 
 #include "util/JValueUtil.h"
@@ -31,6 +32,8 @@ UnifiedSearch::UnifiedSearch()
 {
     LS_CATEGORY_BEGIN(UnifiedSearch, "/")
         LS_CATEGORY_METHOD(search)
+        LS_CATEGORY_METHOD(getCategories)
+        LS_CATEGORY_METHOD(setCategoryInfo)
     LS_CATEGORY_END
 }
 
@@ -59,8 +62,6 @@ bool UnifiedSearch::search(LSMessage &message)
     auto requestPayload = task->requestPayload();
     auto responsePayload = task->responsePayload();
 
-    Logger::logAPIRequest(getClassName(), __FUNCTION__, task->request(), requestPayload);
-
     string key;
     if (!JValueUtil::getValue(requestPayload, "key", key) && key.empty()) {
         responsePayload.put("errorText", "'key' isn't specified.");
@@ -88,6 +89,73 @@ bool UnifiedSearch::search(LSMessage &message)
     return true;
 }
 
+bool UnifiedSearch::getCategories(LSMessage &message)
+{
+    auto task = make_shared<LunaResTask>(getClassName(), __FUNCTION__, &message);
+    auto responsePayload = task->responsePayload();
+    auto categories = Database::getInstance()->getCategories();
+    JValue cateEnabled = Array();
+    JValue cateDisabled = Array();
+    for (auto category : categories) {
+        JValue cateObj = Object();
+        cateObj.put("id", category->getCategoryId());
+        cateObj.put("name", category->getCategoryName());
+        if (category->isEnabled()) {
+            cateEnabled.append(cateObj);
+        } else {
+            cateDisabled.append(cateObj);
+        }
+    }
+    responsePayload.put("enabled", cateEnabled);
+    responsePayload.put("disabled", cateDisabled);
+    responsePayload.put("returnValue", true);
+    return true;
+}
+
+bool UnifiedSearch::setCategoryInfo(LSMessage &message)
+{
+    auto task = make_shared<LunaResTask>(getClassName(), __FUNCTION__, &message);
+    auto requestPayload = task->requestPayload();
+    auto responsePayload = task->responsePayload();
+
+    string id;
+    int rank = RANK_MAX;
+    bool enabled = true;
+    if (!JValueUtil::getValue(requestPayload, "id", id) || id.empty()) {
+        responsePayload.put("errorText", "'id' isn't specified.");
+        responsePayload.put("returnValue", false);
+        return false;
+    }
+
+    bool retEna = JValueUtil::getValue(requestPayload, "enabled", enabled);
+    bool retRank = JValueUtil::getValue(requestPayload, "rank", rank);
+    if (!retEna && !retRank) {
+        responsePayload.put("errorText", "Needs to add at least one of 'rank' or 'enabled'.");
+        responsePayload.put("returnValue", false);
+        return false;
+    } else if (enabled && !retRank) {
+        responsePayload.put("errorText", "Needs 'rank' if its enabled.");
+        responsePayload.put("returnValue", false);
+        return false;
+    }
+
+    auto category = make_shared<Category>(id);
+    category->setRank(rank);
+    category->setEnabled(enabled);
+    if (!Database::getInstance()->updateCategory(category)) {
+        responsePayload.put("errorText", "Category info is not changed.");
+        responsePayload.put("returnValue", false);
+        return false;
+    }
+
+    // apply enabled (For now, the rank is only for getCategories from sqlite3, directly)
+    auto org = SearchManager::getInstance()->findCategory(id);
+    org->setEnabled(enabled);
+
+    responsePayload.put("returnValue", true);
+    return true;
+}
+
 UnifiedSearch::LunaResTask::LunaResTask(string className, string funcName, LSMessage *msg)
     : m_className(className)
     , m_funcName(funcName)
@@ -95,6 +163,7 @@ UnifiedSearch::LunaResTask::LunaResTask(string className, string funcName, LSMes
     , m_response(Object())
 {
     m_request = JDomParser::fromString(m_message.getPayload());
+    Logger::logAPIRequest(getClassName(), __FUNCTION__, m_message, m_request);
 }
 
 UnifiedSearch::LunaResTask::~LunaResTask() {

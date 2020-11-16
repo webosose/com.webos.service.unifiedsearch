@@ -29,6 +29,8 @@
 #include "interface/IInitializable.h"
 #include "interface/ISingleton.h"
 
+#define RANK_MAX 999999
+
 using namespace std;
 
 class Database : public DataSource
@@ -41,20 +43,23 @@ public:
     bool onInitialization();
     bool onFinalization();
 
-    bool createCategory(CategoryPtr cate);
+    bool adjustOrCreateCategory(CategoryPtr cate);
     bool removeCategory(string cateId);
+    bool updateCategory(CategoryPtr cate);
+    vector<CategoryPtr> getCategories();
 
-    bool insert(SearchItemPtr item);
-    bool remove(string category, string key = "");
+    bool insertItem(SearchItemPtr item);
+    bool removeItem(string category, string key = "");
 
     bool search(string searchKey, searchCB callback);
 
 private:
     Database();
 
-    sqlite3 *m_database;
-    sqlite3_stmt *m_insertStmt;
-    sqlite3_stmt *m_selectStmt;
+    bool updateRanks(int value, int start, int end);
+
+    sqlite3* m_database;
+    map<string, sqlite3_stmt*> m_statements;
 };
 
 #endif /* BASE_DATABASE_H_ */

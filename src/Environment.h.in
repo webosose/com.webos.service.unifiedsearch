@@ -28,6 +28,7 @@ static const char* const PATH_RW_SEARCH_CONF         = "@WEBOS_INSTALL_PREFERENC
 static const char* const PATH_SEARCH_SCHEMAS         = "@WEBOS_INSTALL_WEBOS_SYSCONFDIR@/schemas/unifiedsearch/";
 
 static const char* const PATH_DATABASE               = "@WEBOS_INSTALL_DB8DATADIR@/unifiedsearch/";
+static const char* const PATH_PLUGIN                 = "@WEBOS_INSTALL_LIBDIR@/plugins/unifiedsearch/";
 static const char* const DATABASE_FILE               = "main.db";
 
 #endif  // ENVIRONMENT_H_

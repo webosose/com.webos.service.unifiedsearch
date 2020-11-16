@@ -32,6 +32,10 @@ bool SearchSet::addCategory(CategoryPtr category)
     }
 
     m_categories.insert({id, category});
+
+    if (m_client) {
+        m_client->categoryAdded(category);
+    }
     return true;
 }
 
@@ -43,6 +47,10 @@ bool SearchSet::removeCategory(string id)
     }
 
     m_categories.erase(id);
+
+    if (m_client) {
+        m_client->categoryRemoved(id);
+    }
     return true;
 }
 
