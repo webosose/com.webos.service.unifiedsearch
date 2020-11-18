@@ -69,23 +69,39 @@ bool UnifiedSearch::search(LSMessage &message)
         return false;
     }
 
-    responsePayload.put("returnValue", true);
-    responsePayload.put("intents", Object());
-
     // search from SearchManager
     auto allIntents = SearchManager::getInstance()->search(key, [this, task] (map<string, vector<IntentPtr>> allIntents) {
-        for (auto category : allIntents) {
-            auto intents = category.second;
-            JValue intentArr = Array();
-            for (auto intent : intents) {
-                JValue obj;
-                intent->toJson(obj);
-                intentArr << obj;
+        // to append results with category ranking
+        auto categories = Database::getInstance()->getCategories();
+        for (auto category : categories) {
+            if (category->isEnabled()) {
+                auto cateId = category->getCategoryId();
+                auto it = allIntents.find(cateId);
+                // if no item allIntents doesn't have it's category. just continue
+                if (it == allIntents.end()) {
+                    continue;
+                }
+                auto intents = it->second;
+
+                // create json array
+                JValue intentArr = Array();
+                for (auto intent : intents) {
+                    JValue obj;
+                    intent->toJson(obj);
+                    intentArr.append(obj);
+                }
+
+                // create object and append
+                JValue cateObj = Object();
+                cateObj.put("categoryId", cateId);
+                cateObj.put("intents", intentArr);
+                task->responsePayload()["results"].append(cateObj);
             }
-            task->responsePayload()["intents"].put(category.first, intentArr);
         }
     });
 
+    responsePayload.put("returnValue", true);
+    responsePayload.put("results", Array());
     return true;
 }
 
@@ -118,7 +134,7 @@ bool UnifiedSearch::setCategoryInfo(LSMessage &message)
     auto requestPayload = task->requestPayload();
     auto responsePayload = task->responsePayload();
 
-    string id;
+    string id, name;
     int rank = RANK_MAX;
     bool enabled = true;
     if (!JValueUtil::getValue(requestPayload, "id", id) || id.empty()) {
@@ -129,6 +145,7 @@ bool UnifiedSearch::setCategoryInfo(LSMessage &message)
 
     bool retEna = JValueUtil::getValue(requestPayload, "enabled", enabled);
     bool retRank = JValueUtil::getValue(requestPayload, "rank", rank);
+    bool retName = JValueUtil::getValue(requestPayload, "name", name);
     if (!retEna && !retRank) {
         responsePayload.put("errorText", "Needs to add at least one of 'rank' or 'enabled'.");
         responsePayload.put("returnValue", false);
@@ -139,7 +156,7 @@ bool UnifiedSearch::setCategoryInfo(LSMessage &message)
         return false;
     }
 
-    auto category = make_shared<Category>(id);
+    auto category = make_shared<Category>(id, retName ? name : "");
     category->setRank(rank);
     category->setEnabled(enabled);
     if (!Database::getInstance()->updateCategory(category)) {

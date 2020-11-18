@@ -27,7 +27,7 @@ MediaPlugin::MediaPlugin()
     m_source = make_shared<DB8Source>("db8", "com.webos.mediadb");
 
     // register audio category
-    string categoryId = "db8.audio";
+    string categoryId = "mediaindexer.audio";
     string categoryName = "Audio Files";
     JValue audioKind = Object();
     audioKind.put("kind", "com.webos.service.mediaindexer.audio:1");

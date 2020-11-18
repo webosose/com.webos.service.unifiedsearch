@@ -36,10 +36,12 @@ bool Intent::toJson(JValue& json)
         obj.put("uri", m_uri);
     }
     if (!m_extra.isNull()) {
-        obj.put("extra", m_extra);
+        obj.put("extra", m_extra.duplicate());
+    } else {
+        obj.put("extra", Object());
     }
     if (!m_display.isNull()) {
-        obj.put("display", m_display);
+        obj["extra"].put("display", m_display);
     }
     json = obj;
     return true;

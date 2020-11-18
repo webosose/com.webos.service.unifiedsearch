@@ -18,7 +18,7 @@
 
 Category::Category(string id, string name)
     : m_id(id)
-    , m_name(name.empty() ? id : name)
+    , m_name(name)
     , m_rank(0)
     , m_enabled(true)
 {

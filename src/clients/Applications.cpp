@@ -21,7 +21,7 @@
 #include "util/File.h"
 #include "util/JValueUtil.h"
 
-Applications::Applications() : Category("Applications")
+Applications::Applications() : Category("sam.apps", "Applications")
 {
     // remove old items first
     // TODO: it's better to update(replace) only updated one - needs better logic

@@ -32,7 +32,7 @@ static const map<string, string> statementQueries = {
     { "ITEM_INSERT",     "INSERT INTO Items values (?, ?, ?, ?, ?);" },
     { "ITEM_SELECT",     "SELECT * FROM Items WHERE text MATCH ?" },
     { "CATE_INSERT",     "INSERT INTO Category values (?, ?, ?, 1);" },
-    { "CATE_UPDATE",     "UPDATE Category set rank = ?, enabled = ? where id = ?;" },
+    { "CATE_UPDATE",     "UPDATE Category set rank = ?, enabled = ?, name = ? where id = ?;" },
     { "CATE_DELETE",     "DELETE FROM Category WHERE id = ?;" },
     { "CATE_SELECT",     "SELECT * FROM Category WHERE id = ?;" },
     { "CATE_RANK",       "SELECT * FROM Category ORDER BY rank ASC;" },
@@ -196,6 +196,9 @@ bool Database::updateCategory(CategoryPtr cate)
     sqlite3_reset(stmt);
     sqlite3_bind_text(stmt, 1, id, -1, SQLITE_STATIC);
     if (sqlite3_step(stmt) == SQLITE_ROW) {
+        if (strlen(name) == 0) {
+            name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        }
         oldRank = sqlite3_column_int(stmt, 2);
         oldEnabled = sqlite3_column_int(stmt, 3) > 0;
     } else {
@@ -203,27 +206,25 @@ bool Database::updateCategory(CategoryPtr cate)
         return false;
     }
 
-    if (oldEnabled == cate->isEnabled() && (!oldEnabled || oldRank == cate->getRank())) {
-        Logger::warning(getClassName(), __FUNCTION__, Logger::format("No need to update, same values: %s", id));
-        return false;
-    }
-
     // change other categories order first
     int rank = cate->getRank();
     bool enabled = cate->isEnabled();
 
-    if (enabled) {
-        if (oldRank < rank) {
-            updateRanks(-1, oldRank, rank + 1);
+    // change other categories ranks when needs
+    if (oldEnabled != enabled || (enabled && oldRank != cate->getRank())) {
+        if (enabled) {
+            if (oldRank < rank) {
+                updateRanks(-1, oldRank, rank + 1);
+            } else {
+                updateRanks(1, rank - 1, oldRank);
+            }
         } else {
-            updateRanks(1, rank - 1, oldRank);
+            // going to disable
+            // #1, set it's rank as big value
+            rank = RANK_MAX;
+            // #2, set rank-- for other intermediate categories
+            updateRanks(-1, oldRank, RANK_MAX);
         }
-    } else {
-        // going to disable
-        // #1, set it's rank as big value
-        rank = RANK_MAX;
-        // #2, set rank-- for other intermediate categories
-        updateRanks(-1, oldRank, RANK_MAX);
     }
 
     // update itself
@@ -232,7 +233,8 @@ bool Database::updateCategory(CategoryPtr cate)
     sqlite3_reset(stmt);
     sqlite3_bind_int(stmt, 1, rank);
     sqlite3_bind_int(stmt, 2, enabled);
-    sqlite3_bind_text(stmt, 3, id, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, name, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, id, -1, SQLITE_STATIC);
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         const char *err_msg = sqlite3_errmsg(m_database);
         Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to update category: %s - (%s, %s)", err_msg, id, name));

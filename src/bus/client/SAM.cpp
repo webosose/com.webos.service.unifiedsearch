@@ -93,6 +93,7 @@ bool SAM::onListApps(LSHandle* sh, LSMessage* message, void* context)
             auto category = sam->m_searchSet->findCategory(id);
             if (category) {
                 category->setCategoryName(title);
+                Database::getInstance()->updateCategory(category);
                 countUpdate++;
             } else {
                 if (sam->addAppContents(lp)) {
