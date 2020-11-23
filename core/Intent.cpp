@@ -28,21 +28,19 @@ Intent::~Intent()
 
 bool Intent::toJson(JValue& json)
 {
-    JValue obj = m_base.duplicate();
+    JValue obj = Object();
+    JValue intent = m_base.duplicate();
     if (!m_action.empty()) {
-        obj.put("action", m_action);
+        intent.put("action", m_action);
     }
     if (!m_uri.empty()) {
-        obj.put("uri", m_uri);
+        intent.put("uri", m_uri);
     }
     if (!m_extra.isNull()) {
-        obj.put("extra", m_extra.duplicate());
-    } else {
-        obj.put("extra", Object());
+        intent.put("extra", m_extra);
     }
-    if (!m_display.isNull()) {
-        obj["extra"].put("display", m_display);
-    }
+    obj.put("intent", intent);
+    obj.put("display", m_display);
     json = obj;
     return true;
 }

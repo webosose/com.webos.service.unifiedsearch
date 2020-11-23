@@ -69,6 +69,9 @@ bool UnifiedSearch::search(LSMessage &message)
         return false;
     }
 
+    // add results array
+    responsePayload.put("results", Array());
+
     // search from SearchManager
     auto allIntents = SearchManager::getInstance()->search(key, [this, task] (map<string, vector<IntentPtr>> allIntents) {
         // to append results with category ranking
@@ -94,14 +97,13 @@ bool UnifiedSearch::search(LSMessage &message)
                 // create object and append
                 JValue cateObj = Object();
                 cateObj.put("categoryId", cateId);
-                cateObj.put("intents", intentArr);
+                cateObj.put("items", intentArr);
                 task->responsePayload()["results"].append(cateObj);
             }
         }
     });
 
     responsePayload.put("returnValue", true);
-    responsePayload.put("results", Array());
     return true;
 }
 
