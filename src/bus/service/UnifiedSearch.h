@@ -65,7 +65,7 @@ private:
 
     bool search(LSMessage &message);
     bool getCategories(LSMessage &message);
-    bool setCategoryInfo(LSMessage &message);
+    bool updateCategory(LSMessage &message);
 };
 
 #endif

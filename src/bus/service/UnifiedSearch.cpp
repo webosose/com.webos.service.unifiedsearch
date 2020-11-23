@@ -33,7 +33,7 @@ UnifiedSearch::UnifiedSearch()
     LS_CATEGORY_BEGIN(UnifiedSearch, "/")
         LS_CATEGORY_METHOD(search)
         LS_CATEGORY_METHOD(getCategories)
-        LS_CATEGORY_METHOD(setCategoryInfo)
+        LS_CATEGORY_METHOD(updateCategory)
     LS_CATEGORY_END
 }
 
@@ -63,8 +63,16 @@ bool UnifiedSearch::search(LSMessage &message)
     auto responsePayload = task->responsePayload();
 
     string key;
-    if (!JValueUtil::getValue(requestPayload, "key", key) && key.empty()) {
-        responsePayload.put("errorText", "'key' isn't specified.");
+    if (!JValueUtil::getValue(requestPayload, "key", key)) {
+        responsePayload.put("errorCode", 101);
+        responsePayload.put("errorText", "The 'key' isn't specified.");
+        responsePayload.put("returnValue", false);
+        return false;
+    }
+
+    if (key.empty() || key.size() < 2) {
+        responsePayload.put("errorCode", 102);
+        responsePayload.put("errorText", "The 'key' is empty or too short. (needs >= 2 bytes)");
         responsePayload.put("returnValue", false);
         return false;
     }
@@ -130,7 +138,7 @@ bool UnifiedSearch::getCategories(LSMessage &message)
     return true;
 }
 
-bool UnifiedSearch::setCategoryInfo(LSMessage &message)
+bool UnifiedSearch::updateCategory(LSMessage &message)
 {
     auto task = make_shared<LunaResTask>(getClassName(), __FUNCTION__, &message);
     auto requestPayload = task->requestPayload();
@@ -140,7 +148,8 @@ bool UnifiedSearch::setCategoryInfo(LSMessage &message)
     int rank = RANK_MAX;
     bool enabled = true;
     if (!JValueUtil::getValue(requestPayload, "id", id) || id.empty()) {
-        responsePayload.put("errorText", "'id' isn't specified.");
+        responsePayload.put("errorCode", 201);
+        responsePayload.put("errorText", "The 'id' isn't specified.");
         responsePayload.put("returnValue", false);
         return false;
     }
@@ -149,11 +158,18 @@ bool UnifiedSearch::setCategoryInfo(LSMessage &message)
     bool retRank = JValueUtil::getValue(requestPayload, "rank", rank);
     bool retName = JValueUtil::getValue(requestPayload, "name", name);
     if (!retEna && !retRank) {
+        responsePayload.put("errorCode", 202);
         responsePayload.put("errorText", "Needs to add at least one of 'rank' or 'enabled'.");
         responsePayload.put("returnValue", false);
         return false;
     } else if (enabled && !retRank) {
+        responsePayload.put("errorCode", 203);
         responsePayload.put("errorText", "Needs 'rank' if its enabled.");
+        responsePayload.put("returnValue", false);
+        return false;
+    } else if (!enabled && retRank) {
+        responsePayload.put("errorCode", 204);
+        responsePayload.put("errorText", "Shouldn't insert 'rank' when its disabled.");
         responsePayload.put("returnValue", false);
         return false;
     }
@@ -162,7 +178,8 @@ bool UnifiedSearch::setCategoryInfo(LSMessage &message)
     category->setRank(rank);
     category->setEnabled(enabled);
     if (!Database::getInstance()->updateCategory(category)) {
-        responsePayload.put("errorText", "Category info is not changed.");
+        responsePayload.put("errorCode", 205);
+        responsePayload.put("errorText", "Internal database error.");
         responsePayload.put("returnValue", false);
         return false;
     }
