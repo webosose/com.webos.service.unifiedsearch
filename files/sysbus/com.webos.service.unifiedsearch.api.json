@@ -4,6 +4,6 @@
         "com.webos.service.unifiedsearch/getCategories"
     ],
     "search.internal": [
-        "com.webos.service.unifiedsearch/setCategoryInfo"
+        "com.webos.service.unifiedsearch/updateCategory"
     ]
 }
