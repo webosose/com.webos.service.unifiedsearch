@@ -1,0 +1,10 @@
+{
+    "search": {
+        "description": "Allows search",
+        "public": true
+    },
+    "search.internal": {
+        "description": "Allows managing categories",
+        "public": false
+    }
+}
