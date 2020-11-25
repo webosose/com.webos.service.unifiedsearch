@@ -37,7 +37,7 @@ static const map<string, string> statementQueries = {
     { "CATE_SELECT",     "SELECT * FROM Category WHERE id = ?;" },
     { "CATE_RANK",       "SELECT * FROM Category ORDER BY rank ASC;" },
     { "CATE_MAXRANK",    "SELECT max(rank) FROM Category WHERE enabled = 1;" },
-    { "CATE_CHANGERANK", "UPDATE Category SET rank = rank + ? WHERE enabled = 1 AND rank > ? AND rank < ?;" }
+    { "CATE_CHANGERANK", "UPDATE Category SET rank = rank + ? WHERE enabled = 1 AND rank >= ? AND rank <= ?;" }
 };
 
 static const map<string, string> normalQueries = {
@@ -185,38 +185,54 @@ bool Database::updateCategory(CategoryPtr cate)
         return false;
     }
 
-    const char* id = cate->getCategoryId().c_str();
-    const char* name = cate->getCategoryName().c_str();
+    const string &id = cate->getCategoryId();
+    string name = cate->getCategoryName();
 
-    int oldRank;
-    bool oldEnabled;
+    int oldRank = -1;
+    bool oldEnabled = false;
 
-    // before update, get current DB data
-    auto stmt = m_statements["CATE_SELECT"];
+    // before update, get current DB data to order rank correctly
+    int countEnabledCate = 0;
+    auto stmt = m_statements["CATE_RANK"];
     sqlite3_reset(stmt);
-    sqlite3_bind_text(stmt, 1, id, -1, SQLITE_STATIC);
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        if (strlen(name) == 0) {
-            name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char *cateId = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        int rank = sqlite3_column_int(stmt, 2);
+        bool enabled = sqlite3_column_int(stmt, 3) > 0;
+        if (enabled) {
+            countEnabledCate++;
         }
-        oldRank = sqlite3_column_int(stmt, 2);
-        oldEnabled = sqlite3_column_int(stmt, 3) > 0;
-    } else {
-        Logger::error(getClassName(), __FUNCTION__, Logger::format("No matched category on DB: %s", id));
+        if (id == cateId) {
+            oldRank = rank;
+            oldEnabled = enabled;
+            // if no name entered, use previous one
+            if (name.empty()) {
+                name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+            }
+            // if disable => enable case, it should be cared enabled one for count
+            if (!oldEnabled && cate->isEnabled()) {
+                countEnabledCate++;
+            }
+        }
+    }
+
+    // if oldRank is not updated, there is no matched category ID.
+    if (oldRank < 0) {
+        Logger::error(getClassName(), __FUNCTION__, Logger::format("No matched category on DB: %s", id.c_str()));
         return false;
     }
 
-    // change other categories order first
-    int rank = cate->getRank();
+    // re-range the rank (correct user mistake)
+    int rank = min(max(cate->getRank(), 1), countEnabledCate);
     bool enabled = cate->isEnabled();
 
     // change other categories ranks when needs
     if (oldEnabled != enabled || (enabled && oldRank != cate->getRank())) {
         if (enabled) {
             if (oldRank < rank) {
-                updateRanks(-1, oldRank, rank + 1);
+                updateRanks(-1, oldRank + 1, rank);
             } else {
-                updateRanks(1, rank - 1, oldRank);
+                updateRanks(1, rank, oldRank - 1);
             }
         } else {
             // going to disable
@@ -233,15 +249,15 @@ bool Database::updateCategory(CategoryPtr cate)
     sqlite3_reset(stmt);
     sqlite3_bind_int(stmt, 1, rank);
     sqlite3_bind_int(stmt, 2, enabled);
-    sqlite3_bind_text(stmt, 3, name, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 4, id, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, name.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, id.c_str(), -1, SQLITE_STATIC);
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         const char *err_msg = sqlite3_errmsg(m_database);
-        Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to update category: %s - (%s, %s)", err_msg, id, name));
+        Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to update category: %s - (%s, %s)", err_msg, id.c_str(), name.c_str()));
         return false;
     }
 
-    Logger::info(getClassName(), __FUNCTION__, Logger::format("Updated: Category (%s, '%s', %d, %s)", id, name, rank, (enabled ? "Y" : "N")));
+    Logger::info(getClassName(), __FUNCTION__, Logger::format("Updated: Category (%s, '%s', %d, %s)", id.c_str(), name.c_str(), rank, (enabled ? "Y" : "N")));
 
     return true;
 }
