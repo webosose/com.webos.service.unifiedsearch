@@ -8,7 +8,7 @@ sed -i 's/mediaindexer/_mediaindexer/g' /usr/share/luna-service2/session-service
 ls-control scan-services
 
 echo "2. restart media db on ${TARGET_USER}"
-su ${TARGET_USER} -c "/usr/bin/restart db8-mediadb"
+su ${TARGET_USER} -l -c "/usr/bin/restart db8-mediadb"
 
 echo "3. launch mediaindexer manually on ${TARGET_USER} and wait for DB update (10sec)"
 su ${TARGET_USER} -l -c "com.webos.service.mediaindexer & sleep 10 && kill %1;"
@@ -41,6 +41,6 @@ luna-send -c ${TARGET_USER} -n 1 -a com.palm.configurator luna://com.webos.media
 }'
 
 echo "6. restart unifiedsearch on ${TARGET_USER}"
-su ${TARGET_USER} -c "/usr/bin/restart unifiedsearch"
+su ${TARGET_USER} -l -c "/usr/bin/restart unifiedsearch"
 
 echo "Done: ready to check media plugin!"
