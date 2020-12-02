@@ -26,7 +26,7 @@ DB8Category::DB8Category(string id, string name, JValue kind)
 IntentPtr DB8Category::generateIntent(SearchItemPtr item)
 {
     auto intent = make_shared<Intent>(getCategoryName());
-    intent->setAction("play");
+    intent->setAction("view");
     intent->setUri(item->getKey());
     intent->setDisplay(item->getDisplay());
     intent->setExtra(item->getExtra());

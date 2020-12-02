@@ -1,9 +1,9 @@
 {
-    "search": [
+    "search.operation": [
         "com.webos.service.unifiedsearch/search",
         "com.webos.service.unifiedsearch/getCategories"
     ],
-    "search.internal": [
+    "search.management": [
         "com.webos.service.unifiedsearch/updateCategory"
     ]
 }
