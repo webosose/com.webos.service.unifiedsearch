@@ -33,6 +33,9 @@ bool SearchManager::onInitialization()
 
 bool SearchManager::onFinalization()
 {
+    for (auto handle : m_pluginHandles) {
+        dlclose(handle);
+    }
     return true;
 }
 
@@ -197,6 +200,7 @@ void SearchManager::loadPlugins()
         if ((error = dlerror()) != NULL)
         {
             Logger::warning(getClassName(), __FUNCTION__, Logger::format("Failed to load init function: %s", error));
+            dlclose(handle);
             continue;
         }
 
@@ -204,5 +208,6 @@ void SearchManager::loadPlugins()
         addSearchSet(plugin->getSearchSet());
 
         Logger::info(getClassName(), __FUNCTION__, Logger::format("Plugin loaded: %s", file.c_str()));
+        m_pluginHandles.push_back(handle);
     }
 }

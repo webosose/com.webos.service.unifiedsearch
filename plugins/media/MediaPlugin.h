@@ -34,11 +34,12 @@ public:
     ~MediaPlugin() {}
 
     SearchSetPtr getSearchSet() override { return m_searchSet; }
-    const string& getName() override { return "MediaPlugin"; };
+    const string& getName() override { return m_name; };
 
 private:
     SearchSetPtr m_searchSet;
 
+    string m_name;
     DB8SourcePtr m_source;
     vector<CategoryPtr> m_categories;
 };

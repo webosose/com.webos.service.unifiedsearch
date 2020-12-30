@@ -44,7 +44,7 @@ static const map<string, string> normalQueries = {
     { "ITEM_DELETE", "DELETE FROM Items WHERE category = '" }
 };
 
-Database::Database() : DataSource("sqlite3")
+Database::Database() : DataSource("sqlite3"), m_database(nullptr)
 {
 }
 
@@ -70,6 +70,9 @@ bool Database::onInitialization()
     for (auto it : tableQueries) {
         if (sqlite3_exec(m_database, it.second.c_str(), 0, 0, &err_msg) != SQLITE_OK) {
             Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to create item table '%s': %s", it.first.c_str(), err_msg));
+            if (err_msg) {
+                sqlite3_free(err_msg);
+            }
             return false;
         }
     }
@@ -107,8 +110,6 @@ bool Database::adjustOrCreateCategory(CategoryPtr cate)
 
     const char* id = cate->getCategoryId().c_str();
     const char* name = cate->getCategoryName().c_str();
-
-    char *err_msg = nullptr;
 
     // check it's already exist
     auto stmt = m_statements["CATE_SELECT"];
@@ -161,7 +162,6 @@ bool Database::removeCategory(string cateId)
         return false;
     }
 
-    char *err_msg = nullptr;
     auto stmt = m_statements["CATE_REMOVE"];
     sqlite3_reset(stmt);
     sqlite3_bind_text(stmt, 1, cateId.c_str(), -1, SQLITE_STATIC);
@@ -244,7 +244,6 @@ bool Database::updateCategory(CategoryPtr cate)
     }
 
     // update itself
-    char *err_msg = nullptr;
     stmt = m_statements["CATE_UPDATE"];
     sqlite3_reset(stmt);
     sqlite3_bind_int(stmt, 1, rank);
@@ -264,7 +263,6 @@ bool Database::updateCategory(CategoryPtr cate)
 
 vector<CategoryPtr> Database::getCategories() {
     vector<CategoryPtr> categories;
-    char *err_msg = nullptr;
 
     auto stmt = m_statements["CATE_RANK"];
     sqlite3_reset(stmt);
@@ -285,7 +283,6 @@ vector<CategoryPtr> Database::getCategories() {
 
 bool Database::updateRanks(int value, int start, int end)
 {
-    char *err_msg = nullptr;
     auto stmt = m_statements["CATE_CHANGERANK"];
     sqlite3_reset(stmt);
     sqlite3_bind_int(stmt, 1, value);
@@ -333,7 +330,6 @@ bool Database::removeItem(string category, string key)
 {
     if (category.empty()) {
         Logger::warning(getClassName(), __FUNCTION__, "Category is empty");
-        return false;
     }
 
     char *err_msg = nullptr;
@@ -346,6 +342,9 @@ bool Database::removeItem(string category, string key)
 
     if (sqlite3_exec(m_database, query.c_str(), 0, 0, &err_msg) != SQLITE_OK) {
         Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to delete: %s", err_msg));
+        if (err_msg) {
+            sqlite3_free(err_msg);
+        }
         return false;
     }
     Logger::debug(getClassName(), __FUNCTION__, Logger::format("Removed: %s, %s", category.c_str(), key.c_str()));

@@ -21,7 +21,7 @@
 
 using namespace std;
 
-MediaPlugin::MediaPlugin()
+MediaPlugin::MediaPlugin() : m_name("MediaPlugin")
 {
     // create source
     m_source = make_shared<DB8Source>("db8", "com.webos.mediadb");

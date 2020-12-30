@@ -39,8 +39,8 @@ public:
 
     const string& getCategoryId() { return m_id; }
     const string& getCategoryName() { return m_name; }
-    const int getRank() { return m_rank; }
-    const bool isEnabled() { return m_enabled; }
+    int getRank() { return m_rank; }
+    bool isEnabled() { return m_enabled; }
 
     virtual IntentPtr generateIntent(SearchItemPtr item) { return nullptr; };
 

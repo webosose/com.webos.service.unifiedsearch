@@ -73,6 +73,7 @@ private:
     };
 
     map<string, SearchSetPtr> m_searchSets;
+    vector<void*> m_pluginHandles;
 };
 
 #endif /* BASE_DATABASE_H_ */
