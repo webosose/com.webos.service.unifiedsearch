@@ -1,4 +1,7 @@
 {
+    "allowedNames": [
+        "com.webos.service.unifiedsearch"
+    ],
     "search.operation": ["dev"],
     "search.management": ["oem"]
 }
