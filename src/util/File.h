@@ -38,7 +38,6 @@ public:
     static bool isFile(const string& path);
     static bool createDir(const string& path);
     static bool createFile(const string& path);
-    static bool removeDir(const string& path);
 
     static vector<string> readDirectory(const string& path, const string& filter = "");
 

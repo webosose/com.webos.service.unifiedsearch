@@ -18,6 +18,7 @@
 
 #include <dirent.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -112,21 +113,36 @@ bool File::isFile(const string& path)
 
 bool File::createDir(const string& path)
 {
-    std::string command = "mkdir -p " + path;
-    int rc = ::system(command.c_str());
-    return WIFEXITED(rc) && WEXITSTATUS(rc) == 0;
+    const char* path_str = path.c_str();
+    char temp[100];
+
+    int pos = 0;
+    const int len = path.size();
+    struct stat info;
+    while (pos <= len) {
+        if ((path_str[pos] == '/' || path_str[pos] == 0) && pos != 0) {
+            strncpy(temp, path_str, pos);
+            temp[pos] = 0;
+            if (stat(temp, &info) == 0) {
+                if (!S_ISDIR(info.st_mode)) {
+                    // error: file exist, cannot create directory
+                    return false;
+                }
+            } else {
+                if (mkdir(temp, 0755) != 0) {
+                    // error: failed to create dir
+                    return false;
+                }
+            }
+        }
+        pos++;
+    }
+    return true;
 }
 
 bool File::createFile(const string& path)
 {
     return File::writeFile(path, "");
-}
-
-bool File::removeDir(const string& path)
-{
-    std::string command = "rm -rf " + path;
-    int rc = ::system(command.c_str());
-    return WIFEXITED(rc) && WEXITSTATUS(rc) == 0;
 }
 
 vector<string> File::readDirectory(const string& path, const string& filter)
