@@ -1,7 +1,7 @@
 {
     "com.webos.service.unifiedsearch" : [
-        "settings",
-        "database",
-        "applications.internal"
+        "settings.query",
+        "database.operation",
+        "application.operation"
     ]
 }
