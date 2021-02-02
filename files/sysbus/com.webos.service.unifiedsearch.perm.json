@@ -2,6 +2,7 @@
     "com.webos.service.unifiedsearch" : [
         "settings.query",
         "database.operation",
+        "mediadatabase.operation",
         "application.operation"
     ]
 }
