@@ -123,14 +123,9 @@ bool File::createDir(const string& path)
         if ((path_str[pos] == '/' || path_str[pos] == 0) && pos != 0) {
             strncpy(temp, path_str, pos);
             temp[pos] = 0;
-            if (stat(temp, &info) == 0) {
-                if (!S_ISDIR(info.st_mode)) {
+            if (mkdir(temp, 0755) != 0) {
+                if (stat(temp, &info) != 0 || !S_ISDIR(info.st_mode)) {
                     // error: file exist, cannot create directory
-                    return false;
-                }
-            } else {
-                if (mkdir(temp, 0755) != 0) {
-                    // error: failed to create dir
                     return false;
                 }
             }
