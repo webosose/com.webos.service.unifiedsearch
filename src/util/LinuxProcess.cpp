@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <array>
 
 #include "util/LinuxProcess.h"
 
