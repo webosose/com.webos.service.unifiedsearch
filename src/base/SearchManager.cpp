@@ -197,7 +197,7 @@ void SearchManager::loadPlugins()
         }
 
         plugin_init* create_plugin = (plugin_init*) dlsym(handle, "create_plugin");
-        if ((error = dlerror()) != NULL)
+        if (create_plugin == NULL || ((error = dlerror()) != NULL))
         {
             Logger::warning(getClassName(), __FUNCTION__, Logger::format("Failed to load init function: %s", error));
             dlclose(handle);

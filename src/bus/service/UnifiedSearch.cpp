@@ -186,6 +186,7 @@ bool UnifiedSearch::updateCategory(LSMessage &message)
 
     // apply enabled (For now, the rank is only for getCategories from sqlite3, directly)
     auto org = SearchManager::getInstance()->findCategory(id);
+    if(org == NULL) return false;
     org->setEnabled(enabled);
 
     responsePayload.put("returnValue", true);
