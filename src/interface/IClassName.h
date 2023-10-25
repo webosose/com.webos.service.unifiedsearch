@@ -29,7 +29,6 @@ public:
     IClassName() {
         int status;
         s_name = typeid(T).name();
-        if(s_name == NULL) s_name = "";
         char *demangled_name = abi::__cxa_demangle(s_name.c_str(), NULL, NULL, &status);
         std::string d_name(demangled_name ? demangled_name : "");
         if (status == 0) {
