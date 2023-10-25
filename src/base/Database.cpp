@@ -208,7 +208,6 @@ bool Database::updateCategory(CategoryPtr cate)
             // if no name entered, use previous one
             if (name.empty()) {
                 name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-                if(name == NULL) name = "";
             }
             // if disable => enable case, it should be cared enabled one for count
             if (!oldEnabled && cate->isEnabled()) {

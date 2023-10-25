@@ -23,6 +23,10 @@ pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 include_directories(${GLIB2_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${GLIB2_CFLAGS_OTHER})
 
+pkg_check_modules(PBNJSON REQUIRED pbnjson_cpp)
+include_directories(${PBNJSON_INCLUDE_DIRS})
+webos_add_compiler_flags(ALL ${PBNJSON_CFLAGS_OTHER})
+
 pkg_check_modules(PROCPS REQUIRED libprocps)
 include_directories(PROCPS_INCLUDE_DIRS)
 webos_add_compiler_flags(ALL ${PROCPS_CFLAGS})
