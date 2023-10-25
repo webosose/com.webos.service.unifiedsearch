@@ -198,7 +198,7 @@ void SearchManager::loadPlugins()
 
         plugin_init* create_plugin = (plugin_init*) dlsym(handle, "create_plugin");
         if (create_plugin == NULL) {
-            Logger::warning(getClassName(), __FUNCTION__, Logger::format("Unknown error"));
+            Logger::warning(getClassName(), __FUNCTION__, "Unknown error");
             dlclose(handle);
             continue;
         } else if ((error = dlerror()) != NULL) {
