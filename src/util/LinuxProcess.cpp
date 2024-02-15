@@ -16,12 +16,18 @@
 
 #include <signal.h>
 #include <glib.h>
-#include <proc/readproc.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <array>
 
 #include "util/LinuxProcess.h"
+
+#if HAS_LIBPROC2
+#include <libproc2/pids.h>
+#else
+#include <proc/readproc.h>
+#endif
 
 const string LinuxProcess::CLASS_NAME = "LinuxProcess";
 
@@ -177,6 +183,9 @@ PidVector LinuxProcess::findChildPids(const string& pid)
     PidVector pids;
     pids.push_back((pid_t) atol(pid.c_str()));
 
+#if HAS_LIBPROC2
+#warning TODO migrate to proc2
+#else
     proc_t **proctab = readproctab(PROC_FILLSTAT);
     if (!proctab) {
         Logger::error(CLASS_NAME, __FUNCTION__, "readproctab_error", "failed to read proctab");
@@ -200,6 +209,7 @@ PidVector LinuxProcess::findChildPids(const string& pid)
     }
 
     free(proctab);
+#endif
     return pids;
 }
 
