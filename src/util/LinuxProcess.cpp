@@ -23,11 +23,6 @@
 
 #include "util/LinuxProcess.h"
 
-#if HAS_LIBPROC2
-#include <libproc2/pids.h>
-#else
-#include <proc/readproc.h>
-#endif
 
 const string LinuxProcess::CLASS_NAME = "LinuxProcess";
 
