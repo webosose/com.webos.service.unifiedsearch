@@ -31,46 +31,6 @@
 
 const string LinuxProcess::CLASS_NAME = "LinuxProcess";
 
-bool LinuxProcess::sendSigTerm(const string& pid)
-{
-    if (pid.empty()) {
-        Logger::error(CLASS_NAME, __FUNCTION__, "pid is empty");
-        return false;
-    }
-
-    PidVector allPids = LinuxProcess::findChildPids(pid);
-    if (allPids.empty()) {
-        Logger::error(CLASS_NAME, __FUNCTION__, "empty_pids");
-        return false;
-    }
-
-    if (!LinuxProcess::killProcesses(allPids, SIGTERM)) {
-        Logger::error(CLASS_NAME, __FUNCTION__, "seding_signal_error");
-        return false;
-    }
-    return true;
-}
-
-bool LinuxProcess::sendSigKill(const string& pid)
-{
-    if (pid.empty()) {
-        Logger::error(CLASS_NAME, __FUNCTION__, "pid is empty");
-        return false;
-    }
-
-    PidVector allPids = LinuxProcess::findChildPids(pid);
-    if (allPids.empty()) {
-        Logger::error(CLASS_NAME, __FUNCTION__, "empty_pids");
-        return false;
-    }
-
-    if (!LinuxProcess::killProcesses(allPids, SIGKILL)) {
-        Logger::error(CLASS_NAME, __FUNCTION__, "seding_signal_error");
-        return false;
-    }
-    return true;
-}
-
 string LinuxProcess::convertPidsToString(const PidVector& pids)
 {
     string result;
@@ -176,41 +136,6 @@ pid_t LinuxProcess::forkAsyncProcess(const char **argv, const char **envp)
     }
 
     return pid;
-}
-
-PidVector LinuxProcess::findChildPids(const string& pid)
-{
-    PidVector pids;
-    pids.push_back((pid_t) atol(pid.c_str()));
-
-#if HAS_LIBPROC2
-#warning TODO migrate to proc2
-#else
-    proc_t **proctab = readproctab(PROC_FILLSTAT);
-    if (!proctab) {
-        Logger::error(CLASS_NAME, __FUNCTION__, "readproctab_error", "failed to read proctab");
-        return pids;
-    }
-
-    size_t idx = 0;
-    while (idx != pids.size()) {
-        for (proc_t **proc = proctab; *proc; ++proc) {
-            pid_t tid = (*proc)->tid;
-            pid_t ppid = (*proc)->ppid;
-            if (ppid == pids[idx]) {
-                pids.push_back(tid);
-            }
-        }
-        ++idx;
-    }
-
-    for (proc_t **proc = proctab; *proc; ++proc) {
-        free(*proc);
-    }
-
-    free(proctab);
-#endif
-    return pids;
 }
 
 string LinuxProcess::getStdoutFromCmd(const string& cmd)
