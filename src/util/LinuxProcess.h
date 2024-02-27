@@ -29,14 +29,10 @@ typedef vector<pid_t> PidVector;
 
 class LinuxProcess {
 public:
-    static bool sendSigTerm(const string& pid);
-    static bool sendSigKill(const string& pid);
-
     static string convertPidsToString(const PidVector& pids);
     static bool killProcesses(const PidVector& pids, int sig);
     static pid_t forkAsyncProcess(const char **argv, const char **envp);
     static bool forkSyncProcess(const char **argv, const char **envp, int *exit_status = nullptr);
-    static PidVector findChildPids(const string& pid);
     static string getStdoutFromCmd(const string& cmd);
 
     static int getUid(const string& userName);
