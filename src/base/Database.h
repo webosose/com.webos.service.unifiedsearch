@@ -44,14 +44,14 @@ public:
     bool onFinalization();
 
     bool adjustOrCreateCategory(CategoryPtr cate);
-    bool removeCategory(string cateId);
+    bool removeCategory(const string& cateId);
     bool updateCategory(CategoryPtr cate);
     vector<CategoryPtr> getCategories();
 
-    bool insertItem(SearchItemPtr item);
-    bool removeItem(string category, string key = "");
+    bool insertItem(const SearchItemPtr& item);
+    bool removeItem(const string& category, const string& key = "");
 
-    bool search(string searchKey, searchCB callback);
+    bool search(const string& searchKey, searchCB callback);
 
 private:
     Database();

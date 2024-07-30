@@ -67,7 +67,7 @@ bool Database::onInitialization()
 
     // if it's not exist before, need table
     char *err_msg = nullptr;
-    for (auto it : tableQueries) {
+    for (auto& it : tableQueries) {
         if (sqlite3_exec(m_database, it.second.c_str(), 0, 0, &err_msg) != SQLITE_OK) {
             Logger::error(getClassName(), __FUNCTION__, Logger::format("Failed to create item table '%s': %s", it.first.c_str(), err_msg));
             if (err_msg) {
@@ -78,7 +78,7 @@ bool Database::onInitialization()
     }
 
     // create statements
-    for (auto it : statementQueries) {
+    for (auto& it : statementQueries) {
         sqlite3_stmt* stmt;
         if (sqlite3_prepare(m_database, it.second.c_str(), -1, &stmt, NULL) != SQLITE_OK) {
             Logger::error(getClassName(), __FUNCTION__, "Failed to create '%s' statement", it.first.c_str());
@@ -94,7 +94,7 @@ bool Database::onInitialization()
 bool Database::onFinalization()
 {
     // close DB
-    for (auto it : m_statements) {
+    for (auto& it : m_statements) {
         sqlite3_finalize(it.second);
     }
     sqlite3_close(m_database);
@@ -155,7 +155,7 @@ bool Database::adjustOrCreateCategory(CategoryPtr cate)
     return true;
 }
 
-bool Database::removeCategory(string cateId)
+bool Database::removeCategory(const string& cateId)
 {
     if (cateId.empty()) {
         Logger::warning(getClassName(), __FUNCTION__, "Empty category id");
@@ -297,7 +297,7 @@ bool Database::updateRanks(int value, int start, int end)
     return true;
 }
 
-bool Database::insertItem(SearchItemPtr item)
+bool Database::insertItem(const SearchItemPtr& item)
 {
     if (!item) {
         Logger::warning(getClassName(), __FUNCTION__, "Null SearchItem came");
@@ -326,7 +326,7 @@ bool Database::insertItem(SearchItemPtr item)
     return true;
 }
 
-bool Database::removeItem(string category, string key)
+bool Database::removeItem(const string& category, const string& key)
 {
     if (category.empty()) {
         Logger::warning(getClassName(), __FUNCTION__, "Category is empty");
@@ -351,7 +351,7 @@ bool Database::removeItem(string category, string key)
     return true;
 }
 
-bool Database::search(string searchKey, searchCB callback)
+bool Database::search(const string& searchKey, searchCB callback)
 {
     vector<SearchItemPtr> searchedItems;
 
@@ -377,6 +377,6 @@ bool Database::search(string searchKey, searchCB callback)
     }
 
     Logger::info(getClassName(), __FUNCTION__, Logger::format("Find '%s' => %d item(s) on %s", searchKey.c_str(), searchedItems.size(), getId().c_str()));
-    callback(getId(), searchedItems);
+    callback(getId(), std::move(searchedItems));
     return true;
 }

@@ -16,7 +16,7 @@
 
 #include "DB8Category.h"
 
-DB8Category::DB8Category(string id, string name, JValue kind)
+DB8Category::DB8Category(const string& id, const string& name, const JValue& kind)
     : Category(id, name)
     , m_kind(kind)
 {

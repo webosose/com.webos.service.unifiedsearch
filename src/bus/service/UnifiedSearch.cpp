@@ -59,7 +59,7 @@ bool UnifiedSearch::onFinalization()
 bool UnifiedSearch::search(LSMessage &message)
 {
     auto task = make_shared<LunaResTask>(getClassName(), __FUNCTION__, &message);
-    auto requestPayload = task->requestPayload();
+    const auto& requestPayload = task->requestPayload();
     auto responsePayload = task->responsePayload();
 
     string key;
@@ -81,12 +81,12 @@ bool UnifiedSearch::search(LSMessage &message)
     responsePayload.put("results", Array());
 
     // search from SearchManager
-    auto allIntents = SearchManager::getInstance()->search(key, [this, task] (map<string, vector<IntentPtr>> allIntents) {
+    auto allIntents = SearchManager::getInstance()->search(key, [this, task = std::move(task)] (map<string, vector<IntentPtr>> allIntents) {
         // to append results with category ranking
         auto categories = Database::getInstance()->getCategories();
         for (auto category : categories) {
             if (category->isEnabled()) {
-                auto cateId = category->getCategoryId();
+                const string& cateId = category->getCategoryId();
                 auto it = allIntents.find(cateId);
                 // if no item allIntents doesn't have it's category. just continue
                 if (it == allIntents.end()) {
@@ -141,7 +141,7 @@ bool UnifiedSearch::getCategories(LSMessage &message)
 bool UnifiedSearch::updateCategory(LSMessage &message)
 {
     auto task = make_shared<LunaResTask>(getClassName(), __FUNCTION__, &message);
-    auto requestPayload = task->requestPayload();
+    const auto& requestPayload = task->requestPayload();
     auto responsePayload = task->responsePayload();
 
     string id, name;
@@ -174,10 +174,10 @@ bool UnifiedSearch::updateCategory(LSMessage &message)
         return false;
     }
 
-    auto category = make_shared<Category>(id, retName ? name : "");
+    auto category = make_shared<Category>(id, retName ? std::move(name) : "");
     category->setRank(rank);
     category->setEnabled(enabled);
-    if (!Database::getInstance()->updateCategory(category)) {
+    if (!Database::getInstance()->updateCategory(std::move(category))) {
         responsePayload.put("errorCode", 205);
         responsePayload.put("errorText", "Internal database error.");
         responsePayload.put("returnValue", false);
@@ -193,7 +193,7 @@ bool UnifiedSearch::updateCategory(LSMessage &message)
     return true;
 }
 
-UnifiedSearch::LunaResTask::LunaResTask(string className, string funcName, LSMessage *msg)
+UnifiedSearch::LunaResTask::LunaResTask(const string& className, const string& funcName, LSMessage *msg)
     : m_className(className)
     , m_funcName(funcName)
     , m_message(msg)

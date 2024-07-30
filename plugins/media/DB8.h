@@ -35,7 +35,7 @@ public:
     using databaseCB = function<void(JValue &results)>;
     bool find(string kind, string key, string value, databaseCB callback);
 
-    static shared_ptr<DB8> getDB(string service);
+    static shared_ptr<DB8> getDB(const string& service);
 
 protected:
     // LunaClient
@@ -44,7 +44,7 @@ protected:
     void onServerStatusChanged(bool isConnected) override;
 
 private:
-    DB8(string service);
+    DB8(const string& service);
 
     int m_callId;
     map<string, Call> m_calls;

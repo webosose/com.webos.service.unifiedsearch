@@ -16,13 +16,13 @@
 
 #include "DB8Source.h"
 
-DB8Source::DB8Source(string id, string db)
+DB8Source::DB8Source(const string& id, const string& db)
     : DataSource(id)
     , m_db(DB8::getDB(db))
 {
 }
 
-bool DB8Source::addKind(string id, JValue kind)
+bool DB8Source::addKind(const string& id, JValue kind)
 {
     if (m_kindMap.find(id) != m_kindMap.end()) {
         Logger::warning("DB8Source", __FUNCTION__, Logger::format("Kind id '%s' already exit", id.c_str()));
@@ -38,7 +38,7 @@ bool DB8Source::addKind(string id, JValue kind)
     return true;
 }
 
-bool DB8Source::removeKind(string id)
+bool DB8Source::removeKind(const string& id)
 {
     if (m_kindMap.find(id) == m_kindMap.end()) {
         Logger::warning("DB8Source", __FUNCTION__, Logger::format("Kind id '%s' doesn't exit", id.c_str()));
@@ -49,12 +49,12 @@ bool DB8Source::removeKind(string id)
     return true;
 }
 
-bool DB8Source::search(string searchKey, searchCB cb)
+bool DB8Source::search(const string& searchKey, searchCB cb)
 {
     shared_ptr<SearchTask> task = make_shared<SearchTask>(getId(), searchKey, cb);
 
     // for all registered kind
-    for (auto it : m_kindMap) {
+    for (auto& it : m_kindMap) {
         string category = it.first;
         JValue kind = it.second;
 
@@ -100,10 +100,10 @@ bool DB8Source::search(string searchKey, searchCB cb)
     return true;
 }
 
-DB8Source::SearchTask::SearchTask(string id, string key, searchCB cb)
+DB8Source::SearchTask::SearchTask(const string& id, const string& key, searchCB cb)
     : m_id(id)
     , m_key(key)
-    , m_callback(cb)
+    , m_callback(std::move(cb))
 {
     Logger::debug("DB8Source", __FUNCTION__, Logger::format("Search task started: %s", key.c_str()));
 }

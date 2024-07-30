@@ -32,17 +32,17 @@ using namespace pbnjson;
 
 class DB8Source : public DataSource {
 public:
-    DB8Source(string id, string db);
+    DB8Source(const string& id, const string& db);
     ~DB8Source() {}
 
-    bool search(string searchKey, searchCB cb) override;
-    bool addKind(string id, JValue kind);
-    bool removeKind(string id);
+    bool search(const string& searchKey, searchCB cb) override;
+    bool addKind(const string& id, JValue kind);
+    bool removeKind(const string& id);
 
 private:
     class SearchTask {
     public:
-        SearchTask(string id, string key, searchCB cb);
+        SearchTask(const string& id, const string& key, searchCB cb);
         ~SearchTask();
 
         vector<SearchItemPtr>& items() { return m_items; };

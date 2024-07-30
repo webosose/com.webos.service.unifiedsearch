@@ -26,13 +26,13 @@ using namespace pbnjson;
 
 class Intent {
 public:
-    Intent(string category, JValue base = Object());
+    Intent(const string& category, const JValue& base = Object());
     virtual ~Intent();
 
-    void setAction(string action) { m_action = action; }
-    void setUri(string uri) { m_uri = uri; }
-    void setDisplay(JValue display) { m_display = display; }
-    void setExtra(JValue extra) { m_extra = extra; }
+    void setAction(const string& action) { m_action = action; }
+    void setUri(const string& uri) { m_uri = uri; }
+    void setDisplay(JValue& display) { m_display = display; }
+    void setExtra(JValue& extra) { m_extra = extra; }
 
     JValue& getBase() { return m_base; }
     const string& getCategory() { return m_category; }

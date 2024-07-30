@@ -44,15 +44,15 @@ public:
     bool onFinalization();
 
     bool addSearchSet(SearchSetPtr category);
-    bool removeSearchSet(string id);
-    SearchSetPtr findSearchSet(string id);
-    CategoryPtr findCategory(string id);
+    bool removeSearchSet(const string& id);
+    SearchSetPtr findSearchSet(const string& id);
+    CategoryPtr findCategory(const string& id);
 
     using resultCB = function<void(map<string, vector<IntentPtr>>)>;
-    bool search(string searchKey, resultCB cb);
+    bool search(const string& searchKey, resultCB cb);
 
     void categoryAdded(CategoryPtr category) override;
-    void categoryRemoved(string cateId) override;
+    void categoryRemoved(const string& cateId) override;
 
 private:
     SearchManager() {}
@@ -61,7 +61,7 @@ private:
 
     class SearchTask {
     public:
-        SearchTask(string key, resultCB cb);
+        SearchTask(const string& key, resultCB cb);
         ~SearchTask();
 
         vector<IntentPtr>& get(const string &category);

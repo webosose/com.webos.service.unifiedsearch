@@ -32,7 +32,7 @@ public:
         char *demangled_name = abi::__cxa_demangle(s_name.c_str(), NULL, NULL, &status);
         std::string d_name(demangled_name ? demangled_name : "");
         if (status == 0) {
-            s_name = d_name;
+            s_name = std::move(d_name);
             std::free(demangled_name);
         }
     }

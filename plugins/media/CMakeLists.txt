@@ -40,7 +40,6 @@ include_directories(${LUNASERVICE2CPP_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${LUNASERVICE2CPP_CFLAGS_OTHER})
 
 # Environment
-webos_add_compiler_flags(ALL CXX -std=c++0x)
 
 set(LIB_NAME mediaplugin)
 file(GLOB_RECURSE SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)

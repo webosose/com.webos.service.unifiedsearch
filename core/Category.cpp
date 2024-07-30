@@ -16,7 +16,7 @@
 
 #include "Category.h"
 
-Category::Category(string id, string name)
+Category::Category(const string& id, const string& name)
     : m_id(id)
     , m_name(name)
     , m_rank(0)

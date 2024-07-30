@@ -53,10 +53,10 @@ enum LogType {
 class Logger {
 public:
     template<typename ... Args>
-    static const string format(const string& format, Args ... args)
+    static const string format(const string& fmt, Args ... args)
     {
         static char buffer[1024];
-        snprintf(buffer, 1024, format.c_str(), args ... );
+        snprintf(buffer, 1024, fmt.c_str(), args ... );
         return string(buffer);
     }
 

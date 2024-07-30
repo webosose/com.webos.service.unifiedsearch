@@ -32,7 +32,7 @@ using namespace pbnjson;
 
 class DB8Category : public Category {
 public:
-    DB8Category(string id, string name, JValue kind);
+    DB8Category(const string& id, const string& name, const JValue& kind);
     ~DB8Category() {}
 
     JValue getKind() { return m_kind; }

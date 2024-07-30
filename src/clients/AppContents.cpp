@@ -106,14 +106,14 @@ bool AppContents::createIndexes()
             // Use first label as "title" of the item
             if (titles.isNull()) {
                 titles = Object();
-                for (auto label : labelLangs) {
+                for (auto& label : labelLangs) {
                     titles.put(label.first, label.second);
                 }
                 display.put("title", titles);
             }
 
             // for all languages
-            for (auto label : labelLangs) {
+            for (auto& label : labelLangs) {
                 if (searchValue.size() > 0) {
                     searchValue += ", ";
                 }
@@ -223,7 +223,7 @@ map<string, map<string, string>> AppContents::getLabels()
                 allLabels.insert({key, map<string, string>()});
             }
             // concat all languages
-            allLabels[key][language] = value;
+            allLabels[key][language] = std::move(value);
         }
     }
 

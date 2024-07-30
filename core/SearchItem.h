@@ -27,8 +27,8 @@ using namespace pbnjson;
 class SearchItem {
 public:
     SearchItem() {}
-    SearchItem(string category, string key, string value, JValue display);
-    SearchItem(string category, string key, string value, JValue display, JValue extra);
+    SearchItem(const string& category, const string& key, const string& value, const JValue& display);
+    SearchItem(const string& category, const string& key, const string& value, const JValue& display, const JValue& extra);
     virtual ~SearchItem() {}
 
     const string& getKey() { return m_key; }

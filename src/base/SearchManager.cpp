@@ -58,14 +58,14 @@ bool SearchManager::addSearchSet(SearchSetPtr searchSet)
 
     // register categories to DB
     auto categories = searchSet->getCategories();
-    for (auto it : categories) {
+    for (auto& it : categories) {
         Database::getInstance()->adjustOrCreateCategory(it.second);
     }
 
     return true;
 }
 
-bool SearchManager::removeSearchSet(string id)
+bool SearchManager::removeSearchSet(const string& id)
 {
     auto it = m_searchSets.find(id);
     if (it == m_searchSets.end()) {
@@ -81,15 +81,15 @@ bool SearchManager::removeSearchSet(string id)
 
 void SearchManager::categoryAdded(CategoryPtr category)
 {
-    Database::getInstance()->adjustOrCreateCategory(category);
+    Database::getInstance()->adjustOrCreateCategory(std::move(category));
 }
 
-void SearchManager::categoryRemoved(string cateId)
+void SearchManager::categoryRemoved(const string& cateId)
 {
     Database::getInstance()->removeCategory(cateId);
 }
 
-SearchSetPtr SearchManager::findSearchSet(string id)
+SearchSetPtr SearchManager::findSearchSet(const string& id)
 {
     auto it = m_searchSets.find(id);
     if (it != m_searchSets.end()) {
@@ -98,9 +98,9 @@ SearchSetPtr SearchManager::findSearchSet(string id)
     return nullptr;
 }
 
-CategoryPtr SearchManager::findCategory(string id)
+CategoryPtr SearchManager::findCategory(const string& id)
 {
-    for (auto it : m_searchSets) {
+    for (auto& it : m_searchSets) {
         auto searchSet = it.second;
         auto category = searchSet->findCategory(id);
         if (category) {
@@ -111,19 +111,19 @@ CategoryPtr SearchManager::findCategory(string id)
 }
 
 
-bool SearchManager::search(string searchKey, resultCB callback)
+bool SearchManager::search(const string& searchKey, resultCB callback)
 {
     shared_ptr<SearchTask> task = make_shared<SearchTask>(searchKey, callback);
 
     // from each source
-    for (auto it : m_searchSets) {
-        auto id = it.first;
+    for (auto& it : m_searchSets) {
+        auto& id = it.first;
         auto searchSet = it.second;
         auto source = searchSet->getDataSource();
 
         // check searchSet's categories are enabled, it's all disabled, don't search the source.
         bool enabled = false;
-        for (auto it : searchSet->getCategories()) {
+        for (auto& it : searchSet->getCategories()) {
             if (it.second->isEnabled()) {
                 enabled = true;
                 break;
@@ -135,7 +135,7 @@ bool SearchManager::search(string searchKey, resultCB callback)
         }
 
         // try to search
-        source->search(searchKey, [this, task, searchSet] (string sourceId, vector<SearchItemPtr> items) {
+        source->search(searchKey, [this, task, &searchSet] (const string& sourceId, vector<SearchItemPtr> items) {
             // for each items
             for (auto item : items) {
                 const string &cateId = item->getCategory();
@@ -161,9 +161,9 @@ bool SearchManager::search(string searchKey, resultCB callback)
     return true;
 }
 
-SearchManager::SearchTask::SearchTask(string key, resultCB cb)
+SearchManager::SearchTask::SearchTask(const string& key, resultCB cb)
     : m_key(key)
-    , m_callback(cb)
+    , m_callback(std::move(cb))
 {
     Logger::debug("SearchManager", __FUNCTION__, Logger::format("Search task started: %s", key.c_str()));
 }
@@ -189,7 +189,7 @@ void SearchManager::loadPlugins()
 {
     auto files = File::readDirectory(PATH_PLUGIN, ".so");
     char *error;
-    for (auto file : files) {
+    for (auto& file : files) {
         void *handle = dlopen(File::join(PATH_PLUGIN, file).c_str(), RTLD_LAZY);
         if (!handle) {
             Logger::warning(getClassName(), __FUNCTION__, Logger::format("Failed to load: %s", file.c_str()));

@@ -35,7 +35,7 @@ MediaPlugin::MediaPlugin() : m_name("MediaPlugin")
     audioKind["targets"].append("title");
     audioKind["targets"].append("artist");
     auto audio = make_shared<DB8Category>(categoryId, categoryName, audioKind);
-    m_source->addKind(categoryId, audioKind);
+    m_source->addKind(categoryId, std::move(audioKind));
     m_categories.push_back(audio);
 
     // create set
