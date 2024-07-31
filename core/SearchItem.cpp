@@ -16,13 +16,13 @@
 
 #include "SearchItem.h"
 
-SearchItem::SearchItem(string category, string key, string value, JValue display)
+SearchItem::SearchItem(const string& category, const string& key, const string& value, const JValue& display)
     : m_category(category)
     , m_key(key)
     , m_value(value)
     , m_display(display) {}
 
-SearchItem::SearchItem(string category, string key, string value, JValue display, JValue extra)
+SearchItem::SearchItem(const string& category, const string& key, const string& value, const JValue& display, const JValue& extra)
     : m_category(category)
     , m_key(key)
     , m_value(value)

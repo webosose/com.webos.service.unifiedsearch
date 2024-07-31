@@ -28,20 +28,20 @@ using namespace std;
 class SearchSetClient {
 public:
     virtual void categoryAdded(CategoryPtr category) = 0;
-    virtual void categoryRemoved(string cateId) = 0;
+    virtual void categoryRemoved(const string& cateId) = 0;
 };
 
 class SearchSet {
 public:
-    SearchSet(string id, DataSourcePtr source) : m_id(id), m_source(source), m_client(nullptr) {}
+    SearchSet(const string& id, DataSourcePtr source) : m_id(id), m_source(std::move(source)), m_client(nullptr) {}
 
     const string& getId() { return m_id; }
     DataSourcePtr getDataSource() { return m_source; }
     map<string, CategoryPtr> getCategories() { return m_categories; }
 
     bool addCategory(CategoryPtr category);
-    bool removeCategory(string id);
-    CategoryPtr findCategory(string id);
+    bool removeCategory(const string& id);
+    CategoryPtr findCategory(const string& id);
 
     void setClient(SearchSetClient* client) { m_client = client; }
 

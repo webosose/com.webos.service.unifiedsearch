@@ -16,7 +16,7 @@
 
 #include "Intent.h"
 
-Intent::Intent(string category, JValue base)
+Intent::Intent(const string& category, const JValue& base)
     : m_category(category)
     , m_base(base)
 {
@@ -29,7 +29,7 @@ Intent::~Intent()
 bool Intent::toJson(JValue& json)
 {
     JValue obj = Object();
-    JValue intent = m_base.duplicate();
+    JValue intent = std::move(m_base.duplicate());
     if (!m_action.empty()) {
         intent.put("action", m_action);
     }
@@ -41,6 +41,6 @@ bool Intent::toJson(JValue& json)
     }
     obj.put("intent", intent);
     obj.put("display", m_display);
-    json = obj;
+    json = std::move(obj);
     return true;
 }

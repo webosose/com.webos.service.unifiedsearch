@@ -18,7 +18,7 @@
 
 map<string, shared_ptr<DB8>> DB8::s_instances;
 
-shared_ptr<DB8> DB8::getDB(string service) {
+shared_ptr<DB8> DB8::getDB(const string& service) {
     auto it = s_instances.find(service);
     if (it != s_instances.end()) {
         return it->second;
@@ -31,7 +31,7 @@ shared_ptr<DB8> DB8::getDB(string service) {
     }
 }
 
-DB8::DB8(string service)
+DB8::DB8(const string& service)
     : LunaClient(service)
     , m_callId(0)
 {
@@ -73,7 +73,7 @@ bool DB8::find(string kind, string key, string value, databaseCB callback)
     requestPayload["query"].put("where", Array());
     requestPayload["query"]["where"].append(where);
 
-    call(method, requestPayload.stringify(), [this, key, value, callback] (LSMessage *message) -> bool {
+    call(method, requestPayload.stringify(), [this, &callback] (LSMessage *message) -> bool {
         Message response(message);
         JValue responsePayload = JDomParser::fromString(response.getPayload());
         Logger::logCallResponse("DB8", __FUNCTION__, response, responsePayload);

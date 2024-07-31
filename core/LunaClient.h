@@ -86,7 +86,7 @@ private:
 
     class LunaReqTask {
     public:
-        LunaReqTask(LunaClient *c, LunaReqTaskID i, LunaReqCB cb, bool s) : client(c), id(i), callback(cb), isSubscribe(s) {}
+        LunaReqTask(LunaClient *c, LunaReqTaskID i, LunaReqCB& cb, bool s) : client(c), id(i), callback(cb), isSubscribe(s) {}
         LunaClient *client;
         LunaReqTaskID id;
         LunaReqCB callback;

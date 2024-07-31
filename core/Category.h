@@ -30,10 +30,10 @@ using namespace pbnjson;
 
 class Category {
 public:
-    Category(string id, string name = "");
+    Category(const string& id, const string& name = "");
     virtual ~Category();
 
-    void setCategoryName(string name) { m_name = name; }
+    void setCategoryName(const string& name) { m_name = name; }
     void setRank(int rank) { m_rank = rank; }
     void setEnabled(bool enabled) { m_enabled = enabled; }
 

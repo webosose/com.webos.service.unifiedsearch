@@ -45,7 +45,7 @@ private:
 
     class LunaResTask {
     public:
-        LunaResTask(string className, string funcName, LSMessage *msg);
+        LunaResTask(const string& className, const string& funcName, LSMessage *msg);
         ~LunaResTask();
 
         Message &request() { return m_message; }

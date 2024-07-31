@@ -34,12 +34,12 @@ bool SearchSet::addCategory(CategoryPtr category)
     m_categories.insert({id, category});
 
     if (m_client) {
-        m_client->categoryAdded(category);
+        m_client->categoryAdded(std::move(category));
     }
     return true;
 }
 
-bool SearchSet::removeCategory(string id)
+bool SearchSet::removeCategory(const string& id)
 {
     if (m_categories.find(id) == m_categories.end()) {
         Logger::warning("SearchSet", __FUNCTION__, Logger::format("Not exist category: %s", id.c_str()));
@@ -54,7 +54,7 @@ bool SearchSet::removeCategory(string id)
     return true;
 }
 
-CategoryPtr SearchSet::findCategory(string id)
+CategoryPtr SearchSet::findCategory(const string& id)
 {
     auto category = m_categories.find(id);
     if (category != m_categories.end()) {

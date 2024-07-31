@@ -33,7 +33,6 @@ webos_add_compiler_flags(ALL ${SQLITE3_CFLAGS})
 
 # Environment
 webos_configure_source_files(cfg ${CMAKE_CURRENT_SOURCE_DIR}/Environment.h)
-webos_add_compiler_flags(ALL CXX -std=c++0x)
 
 set(BIN_NAME unifiedsearch)
 file(GLOB_RECURSE SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)

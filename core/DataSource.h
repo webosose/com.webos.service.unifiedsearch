@@ -27,13 +27,13 @@ using namespace std;
 
 class DataSource {
 public:
-    DataSource(string id) : m_id(id) {}
+    DataSource(const string& id) : m_id(id) {}
     virtual ~DataSource() {}
 
     string getId() { return m_id; }
 
     using searchCB = function<void(string, vector<SearchItemPtr>)>;
-    virtual bool search(string searchKey, searchCB callback) = 0;
+    virtual bool search(const string& searchKey, searchCB callback) = 0;
 
 private:
     string m_id;
