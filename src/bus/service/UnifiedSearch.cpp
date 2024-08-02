@@ -81,7 +81,7 @@ bool UnifiedSearch::search(LSMessage &message)
     responsePayload.put("results", Array());
 
     // search from SearchManager
-    auto allIntents = SearchManager::getInstance()->search(key, [this, task = std::move(task)] (map<string, vector<IntentPtr>> allIntents) {
+    auto allIntents = SearchManager::getInstance()->search(key, [this, task] (map<string, vector<IntentPtr>> allIntents) {
         // to append results with category ranking
         auto categories = Database::getInstance()->getCategories();
         for (auto category : categories) {
